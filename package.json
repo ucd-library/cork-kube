@@ -1,0 +1,20 @@
+{
+  "name": "@ucd-lib/cork-kube-apply",
+  "version": "0.0.1",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "cork-kube-apply": "bin/cork-kube-apply.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "jrmerz@ucdavis.edu",
+  "license": "MIT",
+  "description": "",
+  "dependencies": {
+    "commander": "^12.1.0",
+    "js-yaml": "^4.1.0",
+    "jsonpath": "^1.1.1"
+  }
+}

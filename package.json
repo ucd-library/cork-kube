@@ -1,5 +1,5 @@
 {
-  "name": "@ucd-lib/cork-kube-apply",
+  "name": "@ucd-lib/cork-kube",
   "version": "0.0.1",
   "main": "index.js",
   "type": "module",
@@ -11,7 +11,7 @@
   },
   "author": "jrmerz@ucdavis.edu",
   "license": "MIT",
-  "description": "",
+  "description": "Added functionality for k8s kustomize templates",
   "dependencies": {
     "commander": "^12.1.0",
     "js-yaml": "^4.1.0",

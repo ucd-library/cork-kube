@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "bin": {
-    "cork-kube-apply": "bin/cork-kube-apply.js"
+    "cork-kube": "bin/cork-kube.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

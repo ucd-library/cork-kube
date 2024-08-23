@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { program } from 'commander';
+import { Command } from 'commander';
 import path from 'path';
 import fs from 'fs';
 import yaml from 'js-yaml';
@@ -9,9 +9,8 @@ import localDevClean from '../lib/local-dev-clean.js';
 import srcMounts from '../lib/src-mounts.js';
 import jsonpath from 'jsonpath';
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
-const version = JSON.parse(fs.readFileSync(path.join(__dirname, '../package.json'))).version;
-let verbose = false;
+const program = new Command();
+let quite = false;
 
 function resolve(file) {
   if (!path.isAbsolute(file)) {
@@ -21,32 +20,30 @@ function resolve(file) {
 }
 
 function log(...args) {
-  if( verbose ) {
+  if( quite != true ) {
     console.log(...args);
   }
 }
 
 program
-  .name('cork-kube-apply')
   .argument('<root-directory>', 'root kustomize directory containing base and overlay directories')
-  .version(version)
   .option('-o, --overlay <overlay-name>', 'overlay name to apply') 
   .option('-e, --edit <jsonpath=value...>', 'Edit a yaml value via jsonpath')
-  // .option('-r, --remove <jsonpath>', 'Remove a yaml value via jsonpath')
   .option('-m, --source-mount <path...>', 'Path to source mounts file')
   .option('-l, --local-dev', 'Strip known local development configurations; resources, intended-for, etc')
-  .option('-v, --verbose', 'Verbose output')
+  .option('-q, --quite', 'No output')
   .option('-d, --dry-run', 'Print templates to stdout without applying')
   .action(async (templateDir, opts) => {
     templateDir = resolve(templateDir);
 
-    let templates = await kubectl.renderKustomizeTemplates(templateDir, opts.overlay);
-    verbose = opts.verbose;
+    let {templatePath, templates} = await kubectl.renderKustomizeTemplates(templateDir, opts.overlay);
+    log(`Applying ${templatePath} with ${templates.length} templates`);
+    quite = opts.quite;
     
     if( opts.edit ) {
       templates.forEach(template => {
         opts.edit.forEach(edit => {
-          let [match, exp, value] = edit.match(/(.*)=(.*)/);
+          let [match, exp, value] = edit.replace(/(^"|"$)/g, '').match(/(.*)=(.*)/);
           if( !match ) return;
 
           jsonpath.apply(template, exp, item => {
@@ -65,7 +62,6 @@ program
 
         srcMountList.forEach(mount => {
           if( !path.isAbsolute(mount.hostPath) ) {
-            console.log(srcMountDir, mount.hostPath);
             mount.hostPath = path.resolve(srcMountDir, mount.hostPath);
           }
         });
@@ -96,6 +92,5 @@ program
       }
     }
   })
-
 
 program.parse(process.argv);

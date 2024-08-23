@@ -1,5 +1,5 @@
-# cork-kube-apply
-kubectl apply -k wrapper for working with kubectl kustomization configurations
+# cork-kube
+kubectl wrapper for working with kubectl kustomization configurations
 
 ## Installation
 ```bash
@@ -7,9 +7,15 @@ npm install -g @ucd-lib/cork-kube
 ```
 
 ## Usage
+
 ```bash
 cork-kube --help
 ```
+
+Commands:
+
+- `apply`: Apply a kustomization configuration
+- `init-overlay`: Init a kustomization overlay from a base directory
 
 ## Source Mount File
 

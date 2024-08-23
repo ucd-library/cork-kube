@@ -29,8 +29,8 @@ program
   .argument('<root-directory>', 'root kustomize directory containing base and overlay directories')
   .option('-o, --overlay <overlay-name>', 'overlay name to apply') 
   .option('-e, --edit <jsonpath=value...>', 'Edit a yaml value via jsonpath')
-  .option('-m, --source-mount <path...>', 'Path to source mounts file')
-  .option('-l, --local-dev', 'Strip known local development configurations; resources, intended-for, etc')
+  .option('-m, --source-mount <path...>', 'Path to source mounts file.  More Info: https://github.com/ucd-library/cork-kube-apply?tab=readme-ov-file#source-mount-file')
+  .option('-l, --local-dev', 'Strip known local development configurations; resources, nodeSelector, imagePullPolicy=Always')
   .option('-q, --quite', 'No output')
   .option('-d, --dry-run', 'Print templates to stdout without applying')
   .action(async (templateDir, opts) => {

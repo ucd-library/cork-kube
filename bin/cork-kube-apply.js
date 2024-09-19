@@ -8,6 +8,7 @@ import kubectl from '../lib/kubectl.js';
 import localDevClean from '../lib/local-dev-clean.js';
 import srcMounts from '../lib/src-mounts.js';
 import jsonpath from 'jsonpath';
+import colors from 'colors';
 
 const program = new Command();
 let quite = false;
@@ -36,8 +37,10 @@ program
   .action(async (templateDir, opts) => {
     templateDir = resolve(templateDir);
 
-    let {templatePath, templates} = await kubectl.renderKustomizeTemplates(templateDir, opts.overlay);
-    log(`Applying ${templatePath} with ${templates.length} templates`);
+    let {templatePath, templates, name, usedOverlay} = await kubectl.renderKustomizeTemplates(templateDir, opts.overlay);
+    log(`Applying ${colors.yellow(name)}: ${templateDir}`);
+    log(` - Overlay: ${colors.yellow(usedOverlay)}`);
+    log(` - Templates Found: ${colors.yellow(templates.length)}`);
     quite = opts.quite;
     
     if( opts.edit ) {
@@ -47,7 +50,7 @@ program
           if( !match ) return;
 
           jsonpath.apply(template, exp, item => {
-            log(`Editing ${template.kind} ${exp} to ${value}`);
+            log(` - Editing ${template.kind} ${colors.yellow(exp)} to ${colors.yellow(value)}`);
             return value;
           });
         });
@@ -66,14 +69,15 @@ program
           }
         });
 
-        log(`Applying source mounts from ${srcMountFile}. ${srcMountList.length} mounts found.`);
+        let highlight = colors.yellow(srcMountList.length+' source mounts');
+        log(` - Applying ${highlight} from ${srcMountFile}`);
         srcMounts(templates, srcMountList);
       });
     }
 
     if( opts.localDev ) {
-      log('Cleaning local development configurations');
-      localDevClean(templates);
+      log(' - Cleaning local development configurations');
+      localDevClean(templates, log);
     }
 
     if( opts.dryRun ) {
@@ -91,6 +95,8 @@ program
         console.log(output.stdout);
       }
     }
+
+    log(''); // newline
   })
 
 program.parse(process.argv);

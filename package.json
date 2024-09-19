@@ -1,6 +1,6 @@
 {
   "name": "@ucd-lib/cork-kube",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "index.js",
   "type": "module",
   "bin": {
@@ -13,6 +13,7 @@
   "license": "MIT",
   "description": "Added functionality for k8s kustomize templates",
   "dependencies": {
+    "colors": "^1.4.0",
     "commander": "^12.1.0",
     "js-yaml": "^4.1.0",
     "jsonpath": "^1.1.1"

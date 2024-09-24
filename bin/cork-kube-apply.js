@@ -37,12 +37,12 @@ program
   .option('-d, --dry-run', 'Print templates to stdout without applying')
   .action(async (templateDir, opts) => {
     templateDir = resolve(templateDir);
+    quiet = opts.quiet;
 
     let {templatePath, templates, name, usedOverlay} = await kubectl.renderKustomizeTemplates(templateDir, opts.overlay);
     log(`Applying ${colors.yellow(name)}: ${templateDir}`);
     log(` - Overlay: ${colors.yellow(usedOverlay)}`);
     log(` - Templates Found: ${colors.yellow(templates.length)}`);
-    quiet = opts.quiet;
     
     if( opts.edit ) {
       templates.forEach(template => {

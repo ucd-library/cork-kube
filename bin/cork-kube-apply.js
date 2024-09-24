@@ -11,7 +11,7 @@ import jsonpath from 'jsonpath';
 import colors from 'colors';
 
 const program = new Command();
-let quite = false;
+let quiet = false;
 
 function resolve(file) {
   if (!path.isAbsolute(file)) {
@@ -21,7 +21,7 @@ function resolve(file) {
 }
 
 function log(...args) {
-  if( quite != true ) {
+  if( quiet != true ) {
     console.log(...args);
   }
 }
@@ -32,7 +32,8 @@ program
   .option('-e, --edit <jsonpath=value...>', 'Edit a yaml value via jsonpath')
   .option('-m, --source-mount <path...>', 'Path to source mounts file.  More Info: https://github.com/ucd-library/cork-kube?tab=readme-ov-file#source-mount-file')
   .option('-l, --local-dev', 'Strip known local development configurations; resources, nodeSelector, imagePullPolicy=Always')
-  .option('-q, --quite', 'No output')
+  .option('-q, --quiet', 'No output')
+  .option('-s, --show-unused-edits', 'Show edit commands that did not match')
   .option('-d, --dry-run', 'Print templates to stdout without applying')
   .action(async (templateDir, opts) => {
     templateDir = resolve(templateDir);
@@ -41,18 +42,30 @@ program
     log(`Applying ${colors.yellow(name)}: ${templateDir}`);
     log(` - Overlay: ${colors.yellow(usedOverlay)}`);
     log(` - Templates Found: ${colors.yellow(templates.length)}`);
-    quite = opts.quite;
+    quiet = opts.quiet;
     
     if( opts.edit ) {
       templates.forEach(template => {
         opts.edit.forEach(edit => {
           let [match, exp, value] = edit.replace(/(^"|"$)/g, '').match(/(.*)=(.*)/);
           if( !match ) return;
+          let used = false;
+          exp = exp.replace(/'/g, '"');
 
-          jsonpath.apply(template, exp, item => {
-            log(` - Editing ${template.kind} ${colors.yellow(exp)} to ${colors.yellow(value)}`);
-            return value;
-          });
+          try {
+            jsonpath.apply(template, exp, item => {
+              log(` - Editing ${template.kind} ${colors.yellow(exp)} to ${colors.yellow(value)}`);
+              used = true;
+              return value;
+            });
+          } catch(e) {
+            log(` - ${colors.red('Error')}: ${e.message}`);
+            log(`  \\-> ${colors.yellow(exp)} in ${template.kind} ${template.metadata.name}`);
+          }
+
+          if( !used && opts.showUnusedEdits ) {
+            log(` - ${colors.yellow('Warning')}: No match found for ${colors.yellow(exp)} in ${template.kind} ${template.metadata.name}`);
+          }
         });
       });
     }

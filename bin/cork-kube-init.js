@@ -36,7 +36,6 @@ program
 
     let projectAccount = config.data?.global?.[project]?.account;
     if( !projectAccount ) {
-      projectAccountSet = false;
       console.warn(colors.yellow(`\n* No account registered for project: ${project}`));
       console.warn(`* Run: ${colors.green(`cork-kube set-account ${project} [email]`)} to set account`);
       console.warn(`* Initializing will proceed assuming account is already correct\n`);

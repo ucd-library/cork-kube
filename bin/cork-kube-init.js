@@ -3,6 +3,7 @@
 import { Command, Option } from 'commander';
 import gcloud from '../lib/gcloud.js'; 
 import kubectl from '../lib/kubectl.js';
+import config from '../lib/config.js';
 import path from 'path';
 import fs from 'fs';
 import colors from 'colors';
@@ -13,32 +14,52 @@ program
   .argument('<env>', 'environment to initialize')
   .option('-c, --config <config>', 'path to config file')
   .action(async (env, opts) => {
-    if( !opts.config ) {
-      opts.config = path.resolve(process.cwd(), '.cork-kube-config');
-    } else {
-      if( !path.isAbsolute(opts.config) ) {
-        opts.config = path.resolve(process.cwd(), opts.config);
-      }
-    }
+    config.init(opts.config);
 
-    if( fs.existsSync(opts.config) && fs.lstatSync(opts.config).isDirectory() ) {
-      opts.config = path.join(opts.config, '.cork-kube-config');
-    }
-
-    if( !fs.existsSync(opts.config) ) {
-      console.error(`Config file does not exist: ${opts.config}`);
+    if( !config.data.local ) {
+      console.error(`Config file does not exist: ${config.localFile}`);
       process.exit(1);
     }
 
-    let corkKubeConfig = JSON.parse(fs.readFileSync(opts.config, 'utf-8'));
+    let corkKubeConfig = config.data.local;
+    let project = corkKubeConfig.project;
 
-    if( !corkKubeConfig[env] ) {
-      console.error(`Environment ${env} not found in config: ${env}. Options: ${Object.keys(corkKubeConfig).join(', ')}`);
+    if( !project ) {
+      console.error(`Project name not found in config: ${config.localFile}`);
       process.exit(1);
     }
-    corkKubeConfig = corkKubeConfig[env];
+
+    if( !corkKubeConfig.environments[env] ) {
+      console.error(`Environment ${env} not found in config: ${env}. Options: ${Object.keys(corkKubeConfig.environments).join(', ')}`);
+      process.exit(1);
+    }
+
+    let projectAccount = config.data?.global?.[project]?.account;
+    if( !projectAccount ) {
+      projectAccountSet = false;
+      console.warn(colors.yellow(`\n* No account registered for project: ${project}`));
+      console.warn(`* Run: ${colors.green(`cork-kube set-account ${project} [email]`)} to set account`);
+      console.warn(`* Initializing will proceed assuming account is already correct\n`);
+    }
+
+    corkKubeConfig = corkKubeConfig.environments[env];
     let gcloudConfig = await gcloud.getConfig();    
     let kubectlConfig = await kubectl.getConfig();
+
+    console.log(`Initializing ${colors.green(env)} environment`);
+
+    if( projectAccount != gcloudConfig.account ) {
+      if( gcloudConfig.account ) {
+        console.log(`\n💥 Account mismatch.  gcloud logged in with ${colors.yellow(gcloudConfig.account)} but ${colors.yellow(projectAccount)} is required`);
+      } else {
+        console.log(`\n💥 your are not logged in with gcloud`);
+      }
+      console.log(`
+* Run: ${colors.green(`gcloud auth login`)} to login with correct account
+* Or run: ${colors.green(` gcloud config configurations activate [configuration-name]`)} if you have multiple accounts
+`);
+      process.exit(1);
+    }
 
     if( corkKubeConfig.project != gcloudConfig.project ) {
       console.log(` - Setting ${colors.green('gcloud project')} from ${colors.yellow(gcloudConfig.project)} to ${colors.green(corkKubeConfig.project)}`);

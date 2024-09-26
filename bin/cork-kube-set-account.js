@@ -14,14 +14,14 @@ program
   .argument('<project>', 'Project to set account for')
   .argument('<email>', 'User account to use for project')
   .action(async (project, email) => {
-    console.log(project, email);  
-    config.load();
 
+    config.init();
     config.data.global = config.data.global || {};
     config.data.global[project] = config.data.global[project] || {};
     config.data.global[project].account = email;
-
     config.saveGlobal();
+
+    console.log(`setting user account for ${project} to ${email}`);
   });
 
 program.parse(process.argv);

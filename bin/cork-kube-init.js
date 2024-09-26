@@ -35,29 +35,35 @@ program
     }
 
     let projectAccount = config.data?.global?.[project]?.account;
-    if( !projectAccount ) {
-      console.warn(colors.yellow(`\n* No account registered for project: ${project}`));
-      console.warn(`* Run: ${colors.green(`cork-kube set-account ${project} [email]`)} to set account`);
-      console.warn(`* Initializing will proceed assuming account is already correct\n`);
-    }
 
     corkKubeConfig = corkKubeConfig.environments[env];
     let gcloudConfig = await gcloud.getConfig();    
     let kubectlConfig = await kubectl.getConfig();
 
-    console.log(`Initializing ${colors.green(env)} environment`);
-
-    if( projectAccount != gcloudConfig.account ) {
-      if( gcloudConfig.account ) {
-        console.log(`\n💥 Account mismatch.  gcloud logged in with ${colors.yellow(gcloudConfig.account)} but ${colors.yellow(projectAccount)} is required`);
-      } else {
-        console.log(`\n💥 your are not logged in with gcloud`);
-      }
+    if( !gcloudConfig.account  ) {
+      console.log(`\n💥 your are not logged in with gcloud`);
       console.log(`
 * Run: ${colors.green(`gcloud auth login`)} to login with correct account
 * Or run: ${colors.green(` gcloud config configurations activate [configuration-name]`)} if you have multiple accounts
 `);
       process.exit(1);
+    }
+
+    if( projectAccount && projectAccount != gcloudConfig.account ) {
+      console.log(`\n💥 Account mismatch.  gcloud logged in with ${colors.yellow(gcloudConfig.account)} but ${colors.yellow(projectAccount)} is required`);
+      console.log(`
+* Run: ${colors.green(`gcloud auth login`)} to login with correct account
+* Or run: ${colors.green(` gcloud config configurations activate [configuration-name]`)} if you have multiple accounts
+`);
+      process.exit(1);
+    }
+
+    console.log(`Initializing ${colors.green(env)} environment`);
+
+    if( !projectAccount ) {
+      console.warn(colors.yellow(`\n* No account registered for project: ${project}`));
+      console.warn(`* Run: ${colors.green(`cork-kube set-account ${project} [email]`)} to set account`);
+      console.warn(`* Initializing will proceed assuming ${gcloudConfig.account} account is already correct\n`);
     }
 
     if( corkKubeConfig.project != gcloudConfig.project ) {

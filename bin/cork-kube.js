@@ -17,6 +17,6 @@ program
   .command('init', 'Initialize gcloud and kubectl for a projects environment')
   .command('project', 'Set user account or register config file to use for project')
   .command('status', 'Get the status of gcloud and kubectl')
-  .command('stop', 'Stop all running services for a projects environment')
+  .command('stop', 'Stop all running services for a projects environment').alias('down')
 
 program.parse(process.argv);

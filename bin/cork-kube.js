@@ -12,9 +12,10 @@ program
   .name('cork-kube')
   .version(version)
   .command('apply', 'Apply a kustomize template with optional source mounts and local development configurations')
+  .command('create-overlay', 'Create a new kustomize overlay')
   .command('init', 'Initialize gcloud and kubectl for a projects environment')
-  .command('set-account', 'Set user account to use for project')
+  .command('project', 'Set user account or register config file to use for project')
   .command('status', 'Get the status of gcloud and kubectl')
-  .command('create-overlay', 'Initialize a new overlay')
+  .command('stop', 'Stop all running services for a projects environment')
 
 program.parse(process.argv);

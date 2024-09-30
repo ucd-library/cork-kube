@@ -14,10 +14,14 @@ cork-kube --help
 
 Commands:
 
-- `apply`: Apply a kustomization configuration
-- `init-overlay`: Init a kustomization overlay from a base directory
+To see commands run `cork-kube --help`
 
 ## Source Mount File
+
+You can mount source code into a container by using a source mount file. This is useful for development environments where you want to mount your source code into a container.  You will specify the source mount file(s) as a flag when running `cork-kube apply`.
+
+
+```yaml
 
 A source mount file should have the following format:
 
@@ -123,7 +127,11 @@ You can assign a user account for a `cork-kube` project
 Example:
 
 ```bash
-cork-kube set-account my-project jrmerz@ucdavis.edu
+cork-kube project set -p my-project -e jrmerz@ucdavis.edu
 ```
 
 Once a user account is assign `cork-kube init` will ensure you are logged in with the proper account, exiting with error if you are not.
+
+### Specify a project by name
+
+run `cork-kube project set -c [path to init file]` to register the prokect with cork-kube.  This will allow you to run `cork-kube init -p my-project local-dev` or `cork-kube stop -p my-project local-dev` without specifying the path to the init file.

@@ -13,6 +13,7 @@ program
   .version(version)
   .command('apply', 'Apply a kustomize template with optional source mounts and local development configurations')
   .command('create-overlay', 'Create a new kustomize overlay')
+  .command('dashboard', 'Kubernetes dashboard helper commands')
   .command('init', 'Initialize gcloud and kubectl for a projects environment')
   .command('project', 'Set user account or register config file to use for project')
   .command('status', 'Get the status of gcloud and kubectl')

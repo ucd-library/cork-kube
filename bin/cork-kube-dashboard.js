@@ -8,6 +8,7 @@ import init from '../lib/init-env.js';
 
 const program = new Command();
 
+const ROOT_URL = 'http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/';
 
 program
   .command('create')
@@ -52,17 +53,25 @@ program
   .description('start kubectl proxy to access dashboard')
   .option('-o, --open', 'open browser to dashboard')
   .action(async (opts) => {
-    console.log('visit http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy');
+    console.log('visit ' + ROOT_URL);
 
     if( opts.open ) {
       let namespace = kubectl.getNamespace();
       setTimeout(async () => { 
         namespace = await namespace;
-        open('http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/pod?namespace='+namespace);
+        open(ROOT_URL+'#/pod?namespace='+namespace);
       }, 1000);
     }
 
     await kubectl.exec('kubectl proxy');
+  });
+
+program
+  .command('open')
+  .description('open dashboard in browser')
+  .action(async () => {
+    let namespace = await kubectl.getNamespace();
+    open(ROOT_URL+'#/pod?namespace='+namespace);
   });
 
 

@@ -13,8 +13,49 @@ program
   .option('-c, --config <config>', 'path to config file')
   .option('-p, --project <project>', 'project name')
   .option('-v, --volumes', 'remove all volumes')
+  .option('-g, --group', 'group of services to stop')
+  .option('-s, --service', 'service to stop')
   .action(async (env, opts) => {
     await init(env, opts);
+
+    let groupServices = [];
+    if( opts.service || opts.group ) {
+      for( let service of config.data.local.services ) {
+        groupServices.push(await deploy.renderTemplate(service.name, env, {quiet: true}));
+      }
+    }
+
+    if( opts.service ) {
+      let service = groupServices.find(s => s.name == opts.service);
+      if( !service ) {
+        console.error(`Service ${opts.service} not found`);
+        process.exit(1);
+      }
+      try {
+        console.log(`Removing ${service.name}`);
+        await deploy.remove(service.name, env);
+      } catch(e) {
+        console.warn(e.message);
+      }
+      return;
+    }
+
+
+    if( opts.group ) {
+      groupServices = groupServices
+        .filter(s => s.group.includes(opts.group));
+
+      for( let service of groupServices ) {
+        try {
+          console.log(`Removing ${service.name}`);
+          await deploy.remove(service.name, env);
+          console.log();
+        } catch(e) {
+          console.warn(e.message);
+        }
+      }
+      return;
+    }
 
     if( opts.volumes ) {
       let context = await kubectl.getCurrentContext();

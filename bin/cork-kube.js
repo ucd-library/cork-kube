@@ -18,8 +18,9 @@ program
   .command('init', 'Initialize gcloud and kubectl for a projects environment')
   .command('project', 'Set user account or register config file to use for project')
   .command('status', 'Get the status of gcloud and kubectl')
-  .command('stop', 'Stop all running services for a projects environment').alias('down')
-  .command('start', 'Start all services for a projects environment').alias('up')
+  .command('stop', 'Stop running services for a projects environment').alias('down')
+  .command('start', 'Start services for a projects environment').alias('up')
+  .command('restart', 'Rolling restart services for a projects environment')
   .command('secrets', 'Deploy secrets from Google Cloud to a projects environment')
 
 program.parse(process.argv);

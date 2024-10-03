@@ -54,7 +54,9 @@ program
       if( opts.group ) {
         for( let service of groupServices ) {
           try {
+            console.log(`Removing ${service.name}`);
             await deploy.remove(service.name, env);
+            console.log();
           } catch(e) {
             console.warn(e.message);
           }

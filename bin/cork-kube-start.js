@@ -38,7 +38,9 @@ program
     let groupServices = [];
     if( opts.group ) {
       for( let service of config.data.local.services ) {
-        groupServices.push(await deploy.renderTemplate(service.name, env, {quiet: true}));
+        groupServices.push(
+          await deploy.renderTemplate(service.name, env, {quiet: true, debug: opts.debug})
+        );
       }
 
       groupServices = groupServices

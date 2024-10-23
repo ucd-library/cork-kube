@@ -11,6 +11,7 @@ program
   .option('-e, --edit <jsonpath=value...>', 'Edit a yaml value via jsonpath')
   .option('-m, --source-mount <path...>', 'Path to source mounts file.  More Info: https://github.com/ucd-library/cork-kube?tab=readme-ov-file#source-mount-file')
   .option('-l, --local-dev', 'Strip known local development configurations; resources, nodeSelector, imagePullPolicy=Always')
+  .option('--local-dev-remote', 'Just like --local-dev but keeps imagePullPolicy=Always.  Useful for remote images')
   .option('-q, --quiet', 'No output')
   .option('-s, --show-unused-edits', 'Show edit commands that did not match')
   .option('-d, --dry-run', 'Print templates to stdout without applying')

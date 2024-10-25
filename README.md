@@ -83,6 +83,7 @@ When running `cork-kube` commands, you can specify the path to the project confi
   - `config`: Load config variables for string template properties from a file.  Currently this should be a `.sh` file.
     - `file`: The path to the config file.  This should be relative to the location of the config file.
     - `args`: Object of key/value pairs to set before running the config file.  These will be available in the config file as environment variables. Ex `file:"config.sh"` and `args={LOCAL_DEV:"true"}`, this will call `LOCAL_DEV=true ./config.sh`.
+  - `ignore`: If true, the service will be ignored when running `cork-kube` commands.  This is useful for services that are not ready to be deployed or are not used in the current environment (very usual when combined in the `environments` spec). 
 
 Note on service properties. `template`, `group`, `edit` and `sourceMounts` can all be arrays.  If they are arrays, the properties will be applied to the service in the order they are defined in the array.
 

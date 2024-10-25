@@ -16,6 +16,8 @@ program
   .action(async (env, opts) => {
     await init(env, opts);
 
+    console.log('');
+
     let groupServices = [];
     for( let service of config.data.local.services ) {
       groupServices.push(await deploy.renderTemplate(service.name, env, {quiet: true}));
@@ -38,6 +40,11 @@ program
     }
 
     for( let service of groupServices ) {
+      if( service.ignore ) { 
+        console.warn(`Service ${service.name} is marked as ignore, skipping\n`);
+        return;
+      }
+
       try {
         console.log(`Rolling restart of ${service.name}`);
         await deploy.restart(service.name, env);

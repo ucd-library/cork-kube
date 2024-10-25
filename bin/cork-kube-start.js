@@ -22,6 +22,8 @@ program
 
     await init(env, opts);
 
+    console.log('');
+
     let envConfig = config.data.local.environments[env];
     let namespaces = await kubectl.getNamespaces();
     if( !namespaces.includes(envConfig.namespace) ) {

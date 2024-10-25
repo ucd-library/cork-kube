@@ -18,6 +18,8 @@ program
   .action(async (env, opts) => {
     await init(env, opts);
 
+    console.log('');
+
     let groupServices = [];
     if( opts.service || opts.group ) {
       for( let service of config.data.local.services ) {
@@ -30,6 +32,10 @@ program
       if( !service ) {
         console.error(`Service ${opts.service} not found`);
         process.exit(1);
+      }
+      if( service.ignore ) { 
+        console.warn(`Service ${service.name} is marked as ignore, skipping\n`);
+        return;
       }
       try {
         console.log(`Removing ${service.name}`);
@@ -46,6 +52,10 @@ program
         .filter(s => s.group.includes(opts.group));
 
       for( let service of groupServices ) {
+        if( service.ignore ) { 
+          console.warn(`Service ${service.name} is marked as ignore, skipping\n`);
+          continue;
+        }
         try {
           console.log(`Removing ${service.name}`);
           await deploy.remove(service.name, env);

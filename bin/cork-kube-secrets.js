@@ -3,6 +3,8 @@ import init from '../lib/init-env.js';
 import config from '../lib/config.js';
 import deploy from '../lib/deploy.js';
 import kubectl from '../lib/kubectl.js';
+import colors from 'colors';
+
 
 const program = new Command();
 
@@ -17,6 +19,7 @@ program
     await init(env, opts);
 
     if( opts.secret ) {
+      await deploy.removeSecret(opts.secret);
       await deploy.secret(opts.secret, env);
     } else {
       await deploy.secrets(env, opts);

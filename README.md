@@ -91,7 +91,7 @@ Note on service properties. `template`, `group`, `edit` and `sourceMounts` can a
 
 Sometimes you may want dynamic properties in your config file. Ex, in local development you want to reploy a different image based on your branch. You can use string templates in your config file properties.  String templates are defined by wrapping the variable in `${}`.  The variable name should be the name of the environment variable you want to use.  The environment variable should be set in the shell environment before running `cork-kube` or the service can define this `config` property to load the variable from a file.
 
-The variable `${__DIRNAME}` is already defined for you.  This will be replaced with the directory name of the kustomize template.
+The variable `${__DIRNAME}` is already defined for you.  This will be replaced with the directory name of the kustomize template. The variable `${__ENV}` is defined as well.  This will be replaced with `environment` argument passed to the `cork-kube` command.
 
 example:
 

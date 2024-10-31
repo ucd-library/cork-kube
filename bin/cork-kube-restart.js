@@ -12,7 +12,7 @@ program
   .option('-c, --config <config>', 'path to config file')
   .option('-p, --project <project>', 'project name')
   .option('-g, --group <group>', 'group of services to stop')
-  .option('-s, --service', 'service to stop')
+  .option('-s, --service <service>', 'service to stop')
   .action(async (env, opts) => {
     await init(env, opts);
 
@@ -25,7 +25,7 @@ program
 
     if( opts.service ) {
       groupServices = groupServices.filter(s => s.name == opts.service);
-      if( !service.length ) {
+      if( !groupServices.length ) {
         console.error(`Service ${opts.service} not found`);
         process.exit(1);
       }

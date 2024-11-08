@@ -12,6 +12,7 @@ program
   .name('cork-kube')
   .version(version)
   .command('apply', 'Apply a kustomize template with optional source mounts and local development configurations')
+  .command('build', 'Build a docker image for a project')
   .command('create-overlay', 'Create a new kustomize overlay')
   .command('dashboard', 'Kubernetes dashboard helper commands')
   .command('pod', 'helpers for executing a command or logging a pod')

@@ -57,6 +57,7 @@ program
   .option('-d, --dry-run', 'dry run build.  Just prints the docker build commands')
   .option('-s, --tag-selection <selectionType>', 'tag selection type.  Default: auto.  Options: force-tag (git tag), force-branch (git branch).  Can be comma separated list of project=selectionType')
   .option('-o, --override-tag <tag>', 'override tag for the build.  Can be comma separated list of project=tag')
+  .option('-f, --filter <filter>', 'filter image names to build.  Can be comma separated list of project names')
   .option('--depth <depth>', 'depth of dependencies to build.  Default: 1, the current project.  Use ALL to build all dependencies')
   .action(async (opts) => {
     if( opts.useRemote ) {
@@ -69,6 +70,12 @@ program
       }
     } else {
       opts.depth = 1;
+    }
+    if( opts.filter ) {
+      opts.filter = opts.filter.split(/(,| )/g)
+        .map(i => i.trim());
+    } else {
+      opts.filter = [];
     }
     
     build.exec(opts);

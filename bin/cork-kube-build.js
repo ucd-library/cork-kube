@@ -55,6 +55,8 @@ program
   .option('-m, --production', 'production build.  Use real registry names and push images to the defined registry')
   .option('-r, --use-remote <repoNameOrUrl>', 'use remote git repository instead of configured local directory')
   .option('-d, --dry-run', 'dry run build.  Just prints the docker build commands')
+  .option('-s, --tag-selection <selectionType>', 'tag selection type.  Default: auto.  Options: force-tag (git tag), force-branch (git branch).  Can be comma separated list of project=selectionType')
+  .option('-o, --override-tag <tag>', 'override tag for the build.  Can be comma separated list of project=tag')
   .option('--depth <depth>', 'depth of dependencies to build.  Default: 1, the current project.  Use ALL to build all dependencies')
   .action(async (opts) => {
     if( opts.useRemote ) {

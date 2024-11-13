@@ -53,17 +53,21 @@ program
   .requiredOption('-p, --project <project>', 'project name')
   .requiredOption('-v, --version <version>', 'version to build')
   .option('-m, --production', 'production build.  Use real registry names and push images to the defined registry')
+  .option('--no-push', 'do not push images to the registry.  Use this with production builds to just build the images to build image but not push, which is the default for production')
   .option('-r, --use-remote <repoNameOrUrl>', 'use remote git repository instead of configured local directory')
   .option('-d, --dry-run', 'dry run build.  Just prints the docker build commands')
   .option('-s, --tag-selection <selectionType>', 'tag selection type.  Default: auto.  Options: force-tag (git tag), force-branch (git branch).  Can be comma separated list of project=selectionType')
   .option('-o, --override-tag <tag>', 'override tag for the build.  Can be comma separated list of project=tag')
   .option('-f, --filter <filter>', 'filter image names to build.  Can be comma separated list of project names')
   .option('--depth <depth>', 'depth of dependencies to build.  Default: 1, the current project.  Use ALL to build all dependencies')
+  .option('--include-build-time', 'include build time in the /cork-build-info file. warning: this will change the image hash causing all downstream images to be rebuilt')
+  .option('--include-build-number <number>', 'include build number in the /cork-build-info file.  warning: this will change the image hash causing all downstream images to be rebuilt')
   .action(async (opts) => {
     if( opts.useRemote ) {
       opts.useRemote = opts.useRemote.split(/(,| )/g)
         .map(i => i.trim());
     }
+
     if( opts.depth ) {
       if( opts.depth !== 'ALL' ) {
         opts.depth = parseInt(opts.depth);
@@ -71,6 +75,16 @@ program
     } else {
       opts.depth = 1;
     }
+
+    // don't build dependencies in production
+    // should only build the current project
+    if( opts.production ) {
+      opts.depth = 1;
+      if( opts.noPush === true ) {
+        console.warn('using --no-push flag.  Images will not push to the registry');
+      }
+    }
+
     if( opts.filter ) {
       opts.filter = opts.filter.split(/(,| )/g)
         .map(i => i.trim());

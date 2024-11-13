@@ -45,6 +45,14 @@ const program = new Command();
 
 //   });
 
+program
+  .command('gcb')
+  .description('submit a project build to Google Cloud Build')
+  .requiredOption('-p, --project <project>', 'project name')
+  .requiredOption('-v, --version <version>', 'version to build')
+  .action(async (opts) => {
+    build.googleCloudBuild(opts.project, opts.version);
+  });
 
 
 program

@@ -1,16 +1,10 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import path from 'path';
-import fs from 'fs';
-
 const program = new Command();
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
-const version = JSON.parse(fs.readFileSync(path.join(__dirname, '../package.json'))).version;
 
 program
   .name('cork-kube')
-  .version(version)
   .command('apply', 'Apply a kustomize template with optional source mounts and local development configurations')
   .command('build', 'Build a docker image for a project')
   .command('create-overlay', 'Create a new kustomize overlay')
@@ -23,5 +17,6 @@ program
   .command('start', 'Start services for a projects environment').alias('up')
   .command('restart', 'Rolling restart services for a projects environment')
   .command('secrets', 'Deploy secrets from Google Cloud to a projects environment')
+  .command('version', 'Show the version of cork-kube')
 
 program.parse(process.argv);

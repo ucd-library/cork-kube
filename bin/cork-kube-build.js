@@ -31,8 +31,7 @@ program
   .option('-o, --override-tag <tag>', 'override tag for the build.  Can be comma separated list of project=tag')
   .option('-f, --filter <filter>', 'filter image names to build.  Can be comma separated list of project names')
   .option('--depth <depth>', 'depth of dependencies to build.  Default: 1, the current project.  Use ALL to build all dependencies')
-  .option('--include-build-time', 'include build time in the /cork-build-info file. warning: this will change the image hash causing all downstream images to be rebuilt')
-  .option('--include-build-number <number>', 'include build number in the /cork-build-info file.  warning: this will change the image hash causing all downstream images to be rebuilt')
+  .option('--increment-build-number', 'increment the build number for the project.  The build number is set as a label on the image')
   .action(async (opts) => {
     if( opts.useRemote ) {
       opts.useRemote = opts.useRemote.split(/(,| )/g)

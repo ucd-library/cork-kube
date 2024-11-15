@@ -13,8 +13,13 @@ program
   .description('submit a project build to Google Cloud Build')
   .requiredOption('-p, --project <project>', 'project name')
   .requiredOption('-v, --version <version>', 'version to build')
+  .option('--no-cache', 'do not use cache when building images')
+  .option('-d, --dry-run', 'just print the gcloud command')
   .action(async (opts) => {
-    build.googleCloudBuild(opts.project, opts.version);
+    if( opts.cache === undefined ) {
+      opts.cache = true;
+    }
+    build.googleCloudBuild(opts.project, opts.version, opts);
   });
 
 
@@ -32,6 +37,7 @@ program
   .option('-f, --filter <filter>', 'filter image names to build.  Can be comma separated list of project names')
   .option('--depth <depth>', 'depth of dependencies to build.  Default: 1, the current project.  Use ALL to build all dependencies')
   .option('--increment-build-number', 'increment the build number for the project.  The build number is set as a label on the image')
+  .option('--no-cache', 'do not use cache when building images')
   .action(async (opts) => {
     if( opts.useRemote ) {
       opts.useRemote = opts.useRemote.split(/(,| )/g)
@@ -61,7 +67,15 @@ program
     } else {
       opts.filter = [];
     }
-    
+
+    // check for this as env var to allow for caching
+    if( process.env.CORK_BUILD_USE_CACHE || process.env._CORK_BUILD_USE_CACHE ) {
+      let useCache = process.env.CORK_BUILD_USE_CACHE || process.env._CORK_BUILD_USE_CACHE;
+      opts.cache = useCache === 'true';
+    } else if( opts.cache === undefined ) {
+      opts.cache = true;
+    }
+
     build.exec(opts);
   });
 

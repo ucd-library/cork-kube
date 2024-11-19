@@ -120,6 +120,7 @@ program
   .description('list all projects and their versions')
   .option('-p, --project <project>', 'filter to a project name')
   .option('-n, --names', 'just list project names')
+  .option('-i, --images', 'list images names')
   .action(async (opts) => {
     await buildDependencies.load();
 
@@ -134,11 +135,20 @@ program
         url : info.repository,
         versions : []
       };
-     
+
       if( opts.names ) continue;
 
       for( let version in info.builds ) {
-        list[project].versions.push(version);
+        if( opts.images ) {
+          let v = {version, images: []};
+          list[project].versions.push(v);
+          let {buildFile} = await buildDependencies.fetchCorkBuildFile(project, version);
+          for( let image in buildFile.images ) {
+            v.images.push(buildFile.registry+'/'+image+':'+version);
+          }
+        } else {
+          list[project].versions.push(version);
+        }
       }
     }
 
@@ -147,6 +157,16 @@ program
     }
 
     console.log(yaml.dump(list));
+  });
+
+program
+  .command('validate')
+  .description('validate a dockerfile for a project')
+  .option('-p, --project <project>', 'project name')
+  .option('-v, --version <version>', 'project version')
+  .action(async (opts) => {
+    let result = await buildDependencies.validateImages(opts.project, opts.version);
+    console.log(yaml.dump(result));
   });
 
 program

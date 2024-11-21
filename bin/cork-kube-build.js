@@ -142,9 +142,9 @@ program
         if( opts.images ) {
           let v = {version, images: []};
           list[project].versions.push(v);
-          let {buildFile} = await buildDependencies.fetchCorkBuildFile(project, version);
-          for( let image in buildFile.images ) {
-            v.images.push(buildFile.registry+'/'+image+':'+version);
+          let {buildConfig} = await buildDependencies.fetchCorkBuildFile(project, version);
+          for( let image in buildConfig.images ) {
+            v.images.push(buildConfig.registry+'/'+image+':'+version);
           }
         } else {
           list[project].versions.push(version);

@@ -38,6 +38,7 @@ program
   .option('--depth <depth>', 'depth of dependencies to build.  Default: 1, the current project.  Use ALL to build all dependencies')
   .option('--increment-build-number', 'increment the build number for the project.  The build number is set as a label on the image')
   .option('--no-cache', 'do not use cache when building images')
+  .option('--no-cache-from', 'do not use --cache-from when building images, speeds up local development')
   .action(async (opts) => {
     if( opts.useRemote ) {
       opts.useRemote = opts.useRemote.split(/(,| )/g)

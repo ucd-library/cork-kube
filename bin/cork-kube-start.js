@@ -50,11 +50,6 @@ program
     }
 
     if( opts.redeploy && !opts.debug) {
-      if( !opts.service && !opts.group ) {
-        console.error('Service name or group is required for redeploy');
-        process.exit(1);
-      }
-
       if( opts.group ) {
         for( let service of groupServices ) {
           try {
@@ -65,11 +60,21 @@ program
             console.warn(e.message);
           }
         }
-      } else {
+      } else if ( opts.service ) {
         try {
           await deploy.remove(opts.service, env);
         } catch(e) {
           console.warn(e.message);
+        }
+      } else {
+        for( let service of config.data.local.services ) {
+          try {
+            console.log(`Removing ${service.name}`);
+            await deploy.remove(service.name, env);
+            console.log();
+          } catch(e) {
+            console.warn(e.message);
+          }
         }
       }
     }

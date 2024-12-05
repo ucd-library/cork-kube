@@ -14,6 +14,7 @@ program
   .requiredOption('-p, --project <project>', 'project name')
   .requiredOption('-v, --version <version>', 'version to build')
   .option('--no-cache', 'do not use cache when building images')
+  .option('--high-cpu', 'use high cpu machine type for build')
   .option('-d, --dry-run', 'just print the gcloud command')
   .action(async (opts) => {
     if( opts.cache === undefined ) {

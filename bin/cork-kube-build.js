@@ -37,12 +37,19 @@ program
   .option('-o, --override-tag <tag>', 'override tag for the build.  Can be comma separated list of project=tag')
   .option('-f, --filter <filter>', 'filter image names to build.  Can be comma separated list of project names')
   .option('--depth <depth>', 'depth of dependencies to build.  Default: 1, the current project.  Use ALL to build all dependencies')
+  .option('--use-registry <projects>', 'use the registry for the given projects even in dev build.  Comma separated list of project names')
+  .option('--local-dev-registry <registry>', 'use the provided local dev registry for the build instead of the default: localhost/local-dev')
   .option('--increment-build-number', 'increment the build number for the project.  The build number is set as a label on the image')
   .option('--no-cache', 'do not use cache when building images')
   .option('--no-cache-from', 'do not use --cache-from when building images, speeds up local development')
   .action(async (opts) => {
     if( opts.useRemote ) {
       opts.useRemote = opts.useRemote.split(/(,| )/g)
+        .map(i => i.trim());
+    }
+
+    if( opts.useRegistry ) {
+      opts.useRegistry = opts.useRegistry.split(/(,| )/g)
         .map(i => i.trim());
     }
 

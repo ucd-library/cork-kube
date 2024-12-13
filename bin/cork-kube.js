@@ -10,7 +10,7 @@ program
   .command('create-overlay', 'Create a new kustomize overlay')
   .command('dashboard', 'Kubernetes dashboard helper commands')
   .command('pod', 'helpers for executing a command or logging a pod')
-  .command('init', 'Initialize gcloud and kubectl for a projects environment')
+  .command('activate', 'Activate gcloud and kubectl for a projects environment').alias('init')
   .command('project', 'Set user account or register config file to use for project')
   .command('status', 'Get the status of gcloud and kubectl')
   .command('stop', 'Stop running services for a projects environment').alias('down')

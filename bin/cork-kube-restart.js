@@ -42,7 +42,7 @@ program
     for( let service of groupServices ) {
       if( service.ignore ) { 
         console.warn(`Service ${service.name} is marked as ignore, skipping\n`);
-        return;
+        continue;
       }
 
       try {

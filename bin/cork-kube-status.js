@@ -11,8 +11,12 @@ const program = new Command();
 program
   .addOption(new Option('-o, --output <format>', 'output format').choices(['json', 'yaml']).default('yaml'))
   .action(async (cmd) => {
-    let config = await gcloud.getConfig();    
+    let config = await gcloud.getConfig();
+    let configurations = await gcloud.getConfigurations();
+    let activeConfig = configurations.find(c => c.is_active);
+
     let gcloudConfig = {
+      configuration: activeConfig.name,
       project: config.project,
       account: config.account
     };

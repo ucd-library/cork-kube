@@ -19,8 +19,9 @@ program
   .addOption(new Option('-t, --tag <tag>', 'Tag to filter "service" by.').default('app'))
   .action(async (env, service, opts) => {
     await init(env, opts);
+    let corkKubeConfig = config.corkKubeConfig;
 
-    let pod = await kubectl.getRunningPodByTag(service, opts.tag);
+    let pod = await kubectl.getRunningPodByTag(service, opts.tag, corkKubeConfig);
 
     if( !pod ) {
       console.log(`No running pods found for ${opts.tag}=${service} and status.phase=Running`);
@@ -54,8 +55,9 @@ program
   .addOption(new Option('-t, --tag <tag>', 'Tag to filter "service" by.').default('app'))
   .action(async (env, service, opts) => {
     await init(env, opts);
+    let corkKubeConfig = config.corkKubeConfig;
 
-    let pods = await kubectl.getPodsByTag(service, opts.tag);
+    let pods = await kubectl.getPodsByTag(service, opts.tag, corkKubeConfig);
     pods = pods.items
       .filter(p => p.metadata.deletionTimestamp == null)
       .map(p => p.metadata.name);
@@ -67,11 +69,18 @@ program
     let pod = pods[0];
 
     let args = ['logs', pod];
+    
+    let cnsFlags = kubectl.getContextNsFlags(corkKubeConfig).trim();
+    if( cnsFlags ) {
+      args.push(cnsFlags);
+    }
+    
     if( opts.container ) {
       args.push('-c', opts.container);
     }
-    args.push('-f');
 
+    args.push('-f');
+    
     let cmd = ['kubectl', ...args].join(' ');
     console.log(`executing: ${cmd}`);
 

@@ -21,15 +21,16 @@ program
     }
 
     await init(env, opts);
+    let corkKubeConfig = config.corkKubeConfig;
 
     console.log('');
 
     let envConfig = config.data.local.environments[env];
-    let namespaces = await kubectl.getNamespaces();
+    let namespaces = await kubectl.getNamespaces(corkKubeConfig);
     if( !namespaces.includes(envConfig.namespace) ) {
       console.log(`Creating namespace ${envConfig.namespace}`);
       if( !opts.debug ) {
-        await kubectl.createNamespace(envConfig.namespace);
+        await kubectl.createNamespace(envConfig.namespace, corkKubeConfig);
       }
     }
 

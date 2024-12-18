@@ -8,6 +8,6 @@ program
   .argument('<env>', 'environment to activate')
   .option('-c, --config <config>', 'path to config file')
   .option('-p, --project <project>', 'project name')
-  .action((env, opts) => init(env, opts));
+  .action((env, opts) => init(env, opts, true));
 
 program.parse(process.argv);

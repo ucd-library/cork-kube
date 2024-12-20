@@ -41,7 +41,7 @@ program
   .option('-f, --filter <filter>', 'filter image names to build.  Can be comma separated list of project names')
   .option('--depth <depth>', 'depth of dependencies to build.  Default: 1, the current project.  Use ALL to build all dependencies')
   .option('--use-registry <projects>', 'use the registry for the given projects even in dev build.  Comma separated list of project names')
-  .option('--cork-build-registry', 'override default remote cork-build-registry location')
+  .option('--cork-build-registry <url>', 'override default remote cork-build-registry location')
   .option('--local-dev-registry <registry>', 'use the provided local dev registry for the build instead of the default: localhost/local-dev')
   .option('--no-cache', 'do not use cache when building images')
   .option('--no-cache-from', 'do not use --cache-from when building images, speeds up local development')
@@ -133,7 +133,7 @@ program
   .option('-p, --project <project>', 'filter to a project name')
   .option('-n, --names', 'just list project names')
   .option('-i, --images', 'list images names')
-  .option('--cork-build-registry', 'override default remote cork-build-registry location')
+  .option('--cork-build-registry <url>', 'override default remote cork-build-registry location')
   .action(async (opts) => {
     await buildDependencies.load(opts);
 
@@ -177,7 +177,7 @@ program
   .description('validate a dockerfile for a project')
   .option('-p, --project <project>', 'project name')
   .option('-v, --version <version>', 'project version')
-  .option('--cork-build-registry', 'override default remote cork-build-registry location')
+  .option('--cork-build-registry <url>', 'override default remote cork-build-registry location')
   .action(async (opts) => {
     let result = await buildDependencies.validateImages(opts.project, opts.version);
     console.log(yaml.dump(result));

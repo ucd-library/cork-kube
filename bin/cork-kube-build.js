@@ -189,10 +189,17 @@ program
 
 program
   .command('set-registry-location')
-  .argument('<dir>', 'location of the build registry')
+  .argument('<dir-or-new-remote>', 'location of the build registry')
   .description('set the location of the build registry')
   .action(async (dir) => {
     config.init();
+
+    if( dir.match(/^(http|https):\/\//) ) {
+      console.log('Setting registry url: '+dir);
+      config.data.build.registryUrl = dir;
+      config.saveGlobal();
+      return;
+    }
 
     if( !path.isAbsolute(dir) ) {
       dir = path.resolve(process.cwd(), dir);
@@ -202,13 +209,14 @@ program
       process.exit(1);
     }
 
+    console.log('Setting local registry dir: '+dir);
     config.data.build.dependenciesDir = dir;
     config.saveGlobal();
   });
 
 program
   .command('reset-registry-location')
-  .description('use the default location of the build registry')
+  .description('use the remote location of the build registry')
   .action(async () => {
     config.init();
     delete config.data.build.dependenciesDir;

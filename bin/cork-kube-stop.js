@@ -3,6 +3,7 @@ import gcloud from '../lib/gcloud.js';
 import kubectl from '../lib/kubectl.js';
 import config from '../lib/config.js';
 import yaml from 'js-yaml';
+import deploy from '../lib/deploy.js';
 import init from '../lib/init-env.js';
 
 const program = new Command();
@@ -13,8 +14,8 @@ program
   .option('-c, --config <config>', 'path to config file')
   .option('-p, --project <project>', 'project name')
   .option('-v, --volumes', 'remove all volumes')
-  .option('-g, --group', 'group of services to stop')
-  .option('-s, --service', 'service to stop')
+  .option('-g, --group <group>', 'group of services to stop')
+  .option('-s, --service <service>', 'service to stop')
   .action(async (env, opts) => {
     await init(env, opts);
 

@@ -32,6 +32,10 @@ program
     if( opts.container ) {
       args.push('-c', opts.container);
     }
+
+    let cnsFlags = kubectl.getContextNsFlags(corkKubeConfig).trim();
+    if( cnsFlags ) args.push(cnsFlags);
+    
     if( opts.command !== 'bash' ) {
       opts.command = `bash -c "${opts.command}"`;
     }

@@ -13,8 +13,11 @@ program
   .description('submit a project build to Google Cloud Build')
   .requiredOption('-p, --project <project>', 'project name')
   .requiredOption('-v, --version <version>', 'version to build')
+  .option('--cork-build-registry <url>', 'override default remote cork-build-registry location')
+  .option('--gcb-project <gcbProject>', 'Google Cloud Build project to submit the build to')
   .option('--no-cache', 'do not use cache when building images')
   .option('--high-cpu', 'use high cpu machine type for build')
+  .option('--prepend-build-stops <file>', 'add pre steps to the build')
   .option('-d, --dry-run', 'just print the gcloud command')
   .action(async (opts) => {
     if( opts.cache === undefined ) {
@@ -38,8 +41,8 @@ program
   .option('-f, --filter <filter>', 'filter image names to build.  Can be comma separated list of project names')
   .option('--depth <depth>', 'depth of dependencies to build.  Default: 1, the current project.  Use ALL to build all dependencies')
   .option('--use-registry <projects>', 'use the registry for the given projects even in dev build.  Comma separated list of project names')
+  .option('--cork-build-registry', 'override default remote cork-build-registry location')
   .option('--local-dev-registry <registry>', 'use the provided local dev registry for the build instead of the default: localhost/local-dev')
-  .option('--increment-build-number', 'increment the build number for the project.  The build number is set as a label on the image')
   .option('--no-cache', 'do not use cache when building images')
   .option('--no-cache-from', 'do not use --cache-from when building images, speeds up local development')
   .action(async (opts) => {
@@ -130,8 +133,9 @@ program
   .option('-p, --project <project>', 'filter to a project name')
   .option('-n, --names', 'just list project names')
   .option('-i, --images', 'list images names')
+  .option('--cork-build-registry', 'override default remote cork-build-registry location')
   .action(async (opts) => {
-    await buildDependencies.load();
+    await buildDependencies.load(opts);
 
     let list = {};
     for( let project in buildDependencies.dependencies ) {
@@ -173,6 +177,7 @@ program
   .description('validate a dockerfile for a project')
   .option('-p, --project <project>', 'project name')
   .option('-v, --version <version>', 'project version')
+  .option('--cork-build-registry', 'override default remote cork-build-registry location')
   .action(async (opts) => {
     let result = await buildDependencies.validateImages(opts.project, opts.version);
     console.log(yaml.dump(result));
@@ -194,7 +199,7 @@ program
   .action(async (dir) => {
     config.init();
 
-    if( dir.match(/^(http|https):\/\//) ) {
+    if( dir.match(/^(https?:\/\/|git@)/) ) {
       console.log('Setting registry url: '+dir);
       config.data.build.registryUrl = dir;
       config.saveGlobal();
@@ -220,6 +225,16 @@ program
   .action(async () => {
     config.init();
     delete config.data.build.dependenciesDir;
+    config.saveGlobal();
+  });
+
+program
+  .command('set-gcb-project')
+  .argument('<project>', 'GCB project to use for builds')
+  .description('GCB project to use for builds')
+  .action(async (project) => {
+    config.init();
+    config.data.build.gcbProject = project;
     config.saveGlobal();
   });
 

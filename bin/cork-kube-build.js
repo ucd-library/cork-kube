@@ -68,7 +68,9 @@ program
     // don't build dependencies in production
     // should only build the current project
     if( opts.production ) {
-      opts.depth = 1;
+      if( opts.depth !== 1 ) {
+        console.warn('Running production build with depth set to: '+opts.depth);
+      }
       if( opts.noPush === true ) {
         console.warn('using --no-push flag.  Images will not push to the registry');
       }

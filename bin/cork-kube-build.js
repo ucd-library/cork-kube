@@ -17,6 +17,7 @@ program
   .option('--gcb-project <gcbProject>', 'Google Cloud Build project to submit the build to')
   .option('--no-cache', 'do not use cache when building images')
   .option('--high-cpu', 'use high cpu machine type for build')
+  .option('--depth <depth>', 'build depth.  Default: 1, the current project.  Use ALL to build all dependencies')
   .option('--prepend-build-stops <file>', 'add pre steps to the build')
   .option('-d, --dry-run', 'just print the gcloud command')
   .action(async (opts) => {

@@ -19,7 +19,7 @@ program
     await kubectl.apply(config.DASHBOARD_URL, null, {context: CONTEXT});
 
     try {
-      await kubectl.exec(`kubectl create serviceaccount -- ${CONTEXT_FLAG} -n kubernetes-dashboard admin-user`);
+      await kubectl.exec(`kubectl create serviceaccount ${CONTEXT_FLAG} -n kubernetes-dashboard admin-user`);
     } catch(e) {}
     
     try {

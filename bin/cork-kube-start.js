@@ -14,6 +14,7 @@ program
   .option('-g, --group <name>', 'only deploy a specific group of services')
   .option('-r, --redeploy', 'redeploy service, deletes it first then deploys. A service must be specified')
   .option('-d, --debug', 'debug service deployment')
+  .option('--ignore-source-mounts', 'ignore source mounts when deploying')
   .action(async (env, opts) => {
     if( opts.service && opts.group ) {
       console.error('Cannot specify both service and group, please choose one');
@@ -42,7 +43,11 @@ program
     if( opts.group ) {
       for( let service of config.data.local.services ) {
         groupServices.push(
-          await deploy.renderTemplate(service.name, env, {quiet: true, debug: opts.debug})
+          await deploy.renderTemplate(service.name, env, {
+            quiet: true, 
+            debug: opts.debug,
+            ignoreSourceMounts: opts.ignoreSourceMounts
+          })
         );
       }
 
@@ -82,12 +87,12 @@ program
 
     if( opts.group ) {
       for( let service of groupServices ) {
-        await deploy.service(service.name, env, opts.debug);
+        await deploy.service(service.name, env, opts);
       }
     } else if( opts.service ) {
-      await deploy.service(opts.service, env, opts.debug);
+      await deploy.service(opts.service, env, opts);
     } else {
-      await deploy.all(env, opts.debug);
+      await deploy.all(env, opts);
     }
   });
 

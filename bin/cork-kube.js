@@ -6,6 +6,7 @@ const program = new Command();
 program
   .name('cork-kube')
   .command('apply', 'Apply a kustomize template with optional source mounts and local development configurations')
+  .command('edit', 'Edit a kustomize template')
   .command('build', 'Build a docker image for a project')
   .command('create-overlay', 'Create a new kustomize overlay')
   .command('dashboard', 'Kubernetes dashboard helper commands')

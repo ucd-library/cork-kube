@@ -15,7 +15,18 @@ const CONTEXT_FLAG='--context docker-desktop';
 program
   .command('create')
   .description('create kubernetes dashboard for docker-desktop')
+  .argument('<env>', 'project environment')
+  .option('-c, --config <config>', 'path to config file')
+  .option('-p, --project <project>', 'project name')
   .action(async (env, opts) => {    
+    await init(env, opts);
+
+    let corkKubeConfig = config.corkKubeConfig;
+    if( corkKubeConfig.context != 'docker-desktop' ) {
+      console.error('This command is only for docker-desktop');
+      process.exit
+    }
+
     await kubectl.apply(config.DASHBOARD_URL, null, {context: CONTEXT});
 
     try {
@@ -39,8 +50,25 @@ Make sure to run 'kubectl proxy' to access the dashboard`)
 program
   .command('token')
   .description('get access token for dashboard')
-  .action(async () => {
-    let token = await kubectl.exec(`kubectl create token ${CONTEXT_FLAG} -n kubernetes-dashboard --duration=720h admin-user`);
+  .argument('<env>', 'project environment')
+  .option('-c, --config <config>', 'path to config file')
+  .option('-p, --project <project>', 'project name')
+  .action(async (env, opts) => {
+    await init(env, opts);
+
+    let corkKubeConfig = config.corkKubeConfig;
+    let token;
+
+    if( corkKubeConfig.platform == 'docker-desktop' ) {
+      token = await kubectl.exec(`kubectl create token ${kubectl.getContextNsFlags(true)} -n kubernetes-dashboard --duration=720h admin-user`);
+    } else if ( corkKubeConfig.platform == 'microk8s' ) {
+      token = await kubectl.exec(`kubectl create token ${kubectl.getContextNsFlags(true)} default`);
+    } else {
+      console.error('This command is only for docker-desktop or microk8s contexts');
+      process.exit(1);
+    }
+
+    console.log('\nToken:');
     console.log(token);
   });
 

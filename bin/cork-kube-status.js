@@ -20,6 +20,10 @@ program
       project: config.project,
       account: config.account
     };
+
+    if( process.env.KUBECONFIG ) {
+      kubectl.setRuntimeParams({kubeconfigFile: process.env.KUBECONFIG});
+    }
     let kubectlConfig = await kubectl.getConfig();
 
     let resp = {

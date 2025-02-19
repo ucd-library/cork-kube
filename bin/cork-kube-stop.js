@@ -104,7 +104,7 @@ program
       console.log(output.trim());
 
       console.log(`\nRemoving all persistent volumes`);
-      let cnsFlags = kubectl.getContextNsFlags(corkKubeConfig);
+      let cnsFlags = kubectl.getContextNsFlags();
       let volumes = await kubectl.exec('kubectl get pv -o json '+cnsFlags);
       if( volumes ) volumes = JSON.parse(volumes);
       for( let volume of volumes.items ) {

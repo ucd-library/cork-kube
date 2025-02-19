@@ -33,7 +33,7 @@ program
       args.push('-c', opts.container);
     }
 
-    let cnsFlags = kubectl.getContextNsFlags(corkKubeConfig).trim();
+    let cnsFlags = kubectl.getContextNsFlags().trim();
     if( cnsFlags ) args.push(cnsFlags);
     
     if( opts.command !== 'bash' ) {
@@ -74,7 +74,7 @@ program
 
     let args = ['logs', pod];
     
-    let cnsFlags = kubectl.getContextNsFlags(corkKubeConfig).trim();
+    let cnsFlags = kubectl.getContextNsFlags().trim();
     if( cnsFlags ) {
       args.push(cnsFlags);
     }

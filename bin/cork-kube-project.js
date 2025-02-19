@@ -5,6 +5,7 @@ import config from '../lib/config.js';
 import path from 'path';
 import fs from 'fs';
 import yaml from 'js-yaml';
+import os from 'os';
 
 const program = new Command();
 
@@ -13,6 +14,7 @@ program
   .option('-p, --project <project>', 'Project to set email account for')
   .option('-e, --email <email>', 'User account to use for project')
   .option('-c, --config <config>', 'path to project config file')
+  .option('-k, --kubeconfig-file <kubeconfigFile>', 'path to kubeconfig file for a project environment. Use [environment]:[path] to set a kubeconfig file for a environment.  Ex: microk8s:~/.kube/microk8s-config')
   .action(async (opts) => {
     let project = '';
 
@@ -52,6 +54,43 @@ program
       config.data.global[project] = config.data.global[project] || {};
       config.data.global[project].account = opts.email;
       console.log(`setting user account for ${project} to ${opts.email}`);
+    }
+
+    if( opts.kubeconfigFile ) {
+      if( !project && !opts.project ) {
+        console.error(`Project name not provided`);
+        process.exit(1);
+      }
+      if( !project ) project = opts.project;
+
+      let parts = opts.kubeconfigFile.split(':');
+      if( parts.length < 2 ) {
+        console.error(`Invalid kubeconfig file format.  Use [environment]:[path]`);
+        process.exit(1);
+      }
+
+      let environment = parts[0];
+      let kubeconfigFile = parts[1];
+      if( kubeconfigFile.match(/^~/) ) {
+        kubeconfigFile = path.join(os.homedir(), kubeconfigFile.replace(/^~/, ''));
+      }
+      if( !path.isAbsolute(kubeconfigFile) ) {
+        kubeconfigFile = path.resolve(process.cwd(), kubeconfigFile);
+      }
+      if( !fs.existsSync(kubeconfigFile) ) {
+        console.error(`Kubeconfig file does not exist: ${kubeconfigFile}`);
+        process.exit(1);
+      }
+
+      config.data.global[project] = config.data.global[project] || {};
+      if( !config.data.global[project].env ) {
+        config.data.global[project].env = {};
+      }
+      if( !config.data.global[project].env[environment] ) {
+        config.data.global[project].env[environment] = {};
+      }
+      config.data.global[project].env[environment].kubeconfigFile = kubeconfigFile;
+      console.log(`setting kubeconfig file location for ${project} environment ${environment} to ${kubeconfigFile}`);
     }
 
     config.saveGlobal();

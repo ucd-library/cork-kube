@@ -49,6 +49,40 @@ program
   });
 
 program
+  .command('port-forward')
+  .description('port forward to a running pod')
+  .argument('<env>', 'project environment')
+  .argument('<service>', 'service name')
+  .argument('<localPort:podPort>', 'local port to forward:pod port')
+  .option('-p, --project <project>', 'project name')
+  .option('-c, --config <path>', 'optional container name')
+  .action(async (env, service, ports, opts) => {
+    await init(env, opts);
+    let corkKubeConfig = config.corkKubeConfig;
+
+    let pod = await kubectl.getRunningPodByTag(service, opts.tag, corkKubeConfig);
+
+    if( !pod ) {
+      console.log(`No running pods found for ${opts.tag}=${service} and status.phase=Running`);
+      process.exit(-1);
+    }
+
+    let args = ['port-forward', pod, ports];
+    if( opts.container ) {
+      args.push('-c', opts.container);
+    }
+
+    let cnsFlags = kubectl.getContextNsFlags().trim();
+    if( cnsFlags ) args.push(cnsFlags);
+
+    let cmd = ['kubectl', ...args].join(' ');
+    console.log(`executing: ${cmd}`);
+
+    await tty.exec('kubectl', args);
+  });
+
+
+program
   .command('logs')
   .description('log a running pod. This will filter out terminating pods.')
   .argument('<env>', 'project environment')

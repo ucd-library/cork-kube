@@ -75,8 +75,19 @@ program
 program
   .command('proxy')
   .description('start kubectl proxy to access dashboard')
+  .argument('<env>', 'project environment')
   .option('-o, --open', 'open browser to dashboard')
-  .action(async (opts) => {
+  .option('-c, --config <config>', 'path to config file')
+  .option('-p, --project <project>', 'project name')
+  .action(async (env, opts) => {
+    await init(env, opts);
+
+    let corkKubeConfig = config.corkKubeConfig;
+    if( corkKubeConfig.platform != 'docker-desktop' ) {
+      console.error('This command is only for docker-desktop');
+      process.exit
+    }
+
     console.log('visit ' + ROOT_URL);
 
     if( opts.open ) {
@@ -87,7 +98,7 @@ program
       }, 1000);
     }
 
-    await kubectl.exec(`kubectl proxy ${CONTEXT_FLAG}`);
+    await kubectl.exec(`kubectl proxy ${kubectl.getContextNsFlags(true)}`);
   });
 
 program

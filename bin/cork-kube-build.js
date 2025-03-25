@@ -18,7 +18,6 @@ program
   .option('--no-cache', 'do not use cache when building images')
   .option('--high-cpu', 'use high cpu machine type for build')
   .option('--depth <depth>', 'build depth.  Default: 1, the current project.  Use ALL to build all dependencies')
-  .option('--prepend-build-stops <file>', 'add pre steps to the build')
   .option('-d, --dry-run', 'just print the gcloud command')
   .action(async (opts) => {
     if( opts.cache === undefined ) {
@@ -194,36 +193,9 @@ program
     let localRepos = config.data.build.localRepos || {};
     console.log(yaml.dump(localRepos));
   });
-
+ 
 program
-  .command('set-registry-location')
-  .argument('<dir-or-new-remote>', 'location of the build registry')
-  .description('set the location of the build registry')
-  .action(async (dir) => {
-    config.init();
-
-    if( dir.match(/^(https?:\/\/|git@)/) ) {
-      console.log('Setting registry url: '+dir);
-      config.data.build.registryUrl = dir;
-      config.saveGlobal();
-      return;
-    }
-
-    if( !path.isAbsolute(dir) ) {
-      dir = path.resolve(process.cwd(), dir);
-    }
-    if( !fs.existsSync(dir) ) {
-      console.error(`Directory not found: ${dir}`);
-      process.exit(1);
-    }
-
-    console.log('Setting local registry dir: '+dir);
-    config.data.build.dependenciesDir = dir;
-    config.saveGlobal();
-  });
-
-program
-  .command('reset-registry-location')
+  .command('reset-cork-registry-location')
   .description('use the remote location of the build registry')
   .action(async () => {
     config.init();
@@ -231,15 +203,60 @@ program
     config.saveGlobal();
   });
 
-program
-  .command('set-gcb-project')
-  .argument('<project>', 'GCB project to use for builds')
-  .description('GCB project to use for builds')
-  .action(async (project) => {
+program.command('show-config')
+  .description('show the current local build configuration')
+  .option('-i, --include-local-repos', 'include local repositories in the output')
+  .action(async (opts) => {
     config.init();
-    config.data.build.gcbProject = project;
-    config.saveGlobal();
+    if( !opts.includeLocalRepos ) {
+      delete config.data.build.localRepos;
+    }
+    console.log(yaml.dump(config.data.build));
   });
 
+program
+  .command('set-config')
+  .option('-p, --gcb-project <project>', 'GCB project to use for builds')
+  .option('-r, --cork-registry <cork-registry>', 'cork registry to use for images')
+  .option('-d, --docker-registry <docker-registry>', 'set local docker registry to use for images')
+  .option('-l, --push-local <enable>', 'push local builds to images to the registry')
+  .description('GCB project to use for builds')
+  .action(async (args) => {
+    config.init();
+
+    if( args.pushLocal ) {
+      console.log('Setting push local: '+args.pushLocal);
+      config.data.build.pushLocalDev = args.pushLocal === 'true';
+    }
+    if( args.gcbProject ) {
+      console.log('Setting GCB project: '+args.gcbProject);
+      config.data.build.gcbProject = args.gcbProject;
+    }
+    if( args.dockerRegistry ) {
+      console.log('Setting local dev docker registry: '+args.dockerRegistry);
+      config.data.build.localDevRegistry = args.dockerRegistry;
+    }
+    if( args.corkRegistry ) {
+      if( args.corkRegistry.match(/^(https?:\/\/|git@)/) ) {
+        console.log('Setting registry url: '+args.corkRegistry);
+        config.data.build.registryUrl = args.corkRegistry;
+        config.saveGlobal();
+        return;
+      }
+  
+      if( !path.isAbsolute(args.corkRegistry) ) {
+        args.corkRegistry = path.resolve(process.cwd(), args.corkRegistry);
+      }
+      if( !fs.existsSync(args.corkRegistry) ) {
+        console.error(`Directory not found: ${args.corkRegistry}`);
+        process.exit(1);
+      }
+  
+      console.log('Setting local registry dir: '+args.corkRegistry);
+      config.data.build.dependenciesDir = args.corkRegistry;
+    }
+
+    config.saveGlobal();
+  });
 
 program.parse(process.argv);

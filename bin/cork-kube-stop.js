@@ -108,7 +108,7 @@ program
       let volumes = await kubectl.exec('kubectl get pv -o json '+cnsFlags);
       if( volumes ) volumes = JSON.parse(volumes);
       for( let volume of volumes.items ) {
-        if( volume.spec?.claimRef?.namespace != namespace ) {
+        if( volume.spec?.claimRef?.namespace != config.data.local.project ) {
           continue;
         }
         if( volume.status.phase == 'Bound' ) {

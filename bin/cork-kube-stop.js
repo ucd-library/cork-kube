@@ -116,7 +116,7 @@ program
           console.warn(`skipping bound volume ${volume.metadata.name}`);
           continue;
         }
-        output = await kubectl.exec(`kubectl delete pv ${volume.metadata.name} ${cnsFlags}`);
+        output = await kubectl.exec(`kubectl delete pv ${volume.metadata.name} ${kubectl.getContextNsFlags(true)}`);
         console.log(output.trim());
       }
     }

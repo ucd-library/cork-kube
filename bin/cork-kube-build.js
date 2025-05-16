@@ -218,7 +218,7 @@ program
   .command('set-config')
   .option('-p, --gcb-project <project>', 'GCB project to use for builds')
   .option('-r, --cork-registry <cork-registry>', 'cork registry to use for images')
-  .option('-d, --docker-registry <docker-registry>', 'set local docker registry to use for images')
+  .option('-d, --docker-registry <ghHost:docker-registry>', 'set local docker registry to use for images')
   .option('-l, --push-local <enable>', 'push local builds to images to the registry')
   .description('GCB project to use for builds')
   .action(async (args) => {
@@ -233,8 +233,17 @@ program
       config.data.build.gcbProject = args.gcbProject;
     }
     if( args.dockerRegistry ) {
-      console.log('Setting local dev docker registry: '+args.dockerRegistry);
-      config.data.build.localDevRegistry = args.dockerRegistry;
+      let [host, registry] = args.dockerRegistry.split(':');
+      if( !host || !registry ) {
+        console.error('Invalid docker registry format. Use <Github Project Url>:<Google Artifact Registry Path>');
+        process.exit(1);
+      }
+
+      console.log('Setting local dev docker for project = '+host+' registry: '+registry);
+      if( !config.data.build.localDevRegistry ) {
+        config.data.build.localDevRegistry = {};
+      }
+      config.data.build.localDevRegistry[host] = registry;
     }
     if( args.corkRegistry ) {
       if( args.corkRegistry.match(/^(https?:\/\/|git@)/) ) {

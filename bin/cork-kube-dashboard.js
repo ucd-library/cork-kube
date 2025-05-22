@@ -27,7 +27,7 @@ program
       process.exit
     }
 
-    await kubectl.apply(config.DASHBOARD_URL, null, {context: CONTEXT});
+    await kubectl.apply(config.DASHBOARD_URL, null, {namespace: 'kubernetes-dashboard', context: CONTEXT});
 
     try {
       await kubectl.exec(`kubectl create serviceaccount ${CONTEXT_FLAG} -n kubernetes-dashboard admin-user`);

@@ -44,6 +44,7 @@ program
   .option('--cork-build-registry <url>', 'override default remote cork-build-registry location')
   .option('--local-dev-registry <registry>', 'use the provided local dev registry for the build instead of the default: localhost/local-dev')
   .option('--no-cache', 'do not use cache when building images')
+  .option('--set-env <file>', 'Set built image tags as environment variables in a env file')
   .option('--no-cache-from', 'do not use --cache-from when building images, speeds up local development')
   .action(async (opts) => {
     if( opts.useRemote ) {
@@ -80,6 +81,10 @@ program
         .map(i => i.trim());
     } else {
       opts.filter = [];
+    }
+
+    if( opts.setEnv && !path.isAbsolute(opts.setEnv) ) {
+      opts.setEnv = path.resolve(process.cwd(), opts.setEnv);
     }
 
     // check for this as env var to allow for caching

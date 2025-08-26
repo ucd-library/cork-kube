@@ -20,9 +20,9 @@ program
 
     if( opts.secret ) {
       await deploy.removeSecret(opts.secret);
-      await deploy.secret(opts.secret, env);
+      await deploy.secret(opts.secret);
     } else {
-      await deploy.secrets(env, opts);
+      await deploy.secrets(opts);
     }
   });
 

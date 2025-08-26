@@ -24,7 +24,7 @@ program
     let groupServices = [];
     if( opts.service || opts.group ) {
       for( let service of config.data.local.services ) {
-        groupServices.push(await deploy.renderTemplate(service.name, env, {quiet: true}));
+        groupServices.push(await deploy.renderTemplate(service.name, {quiet: true}));
       }
     }
 
@@ -40,7 +40,7 @@ program
       }
       try {
         console.log(`Removing ${service.name}`);
-        await deploy.remove(service.name, env);
+        await deploy.remove(service.name);
       } catch(e) {
         console.warn(e.message);
       }
@@ -59,7 +59,7 @@ program
         }
         try {
           console.log(`Removing ${service.name}`);
-          await deploy.remove(service.name, env);
+          await deploy.remove(service.name);
           console.log();
         } catch(e) {
           console.warn(e.message);

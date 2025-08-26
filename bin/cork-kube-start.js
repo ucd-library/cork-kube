@@ -26,24 +26,23 @@ program
 
     console.log('');
 
-    let envConfig = config.data.local.environments[env];
     let namespaces = await kubectl.getNamespaces(corkKubeConfig);
-    if( !namespaces.includes(envConfig.namespace) ) {
-      console.log(`Creating namespace ${envConfig.namespace}`);
+    if( !namespaces.includes(corkKubeConfig.namespace) ) {
+      console.log(`Creating namespace ${corkKubeConfig.namespace}`);
       if( !opts.debug ) {
-        await kubectl.createNamespace(envConfig.namespace, corkKubeConfig);
+        await kubectl.createNamespace(corkKubeConfig.namespace, corkKubeConfig);
       }
     }
 
     if( config.data.local.secrets && !opts.service && !opts.group ) {
-      await deploy.secrets(env, opts);
+      await deploy.secrets(opts);
     }
 
     let groupServices = [];
     if( opts.group ) {
       for( let service of config.data.local.services ) {
         groupServices.push(
-          await deploy.renderTemplate(service.name, env, {
+          await deploy.renderTemplate(service.name, {
             quiet: true, 
             debug: opts.debug,
             ignoreSourceMounts: opts.ignoreSourceMounts
@@ -60,7 +59,7 @@ program
         for( let service of groupServices ) {
           try {
             console.log(`Removing ${service.name}`);
-            await deploy.remove(service.name, env);
+            await deploy.remove(service.name);
             console.log();
           } catch(e) {
             console.warn(e.message);
@@ -68,7 +67,7 @@ program
         }
       } else if ( opts.service ) {
         try {
-          await deploy.remove(opts.service, env);
+          await deploy.remove(opts.service);
         } catch(e) {
           console.warn(e.message);
         }
@@ -76,7 +75,7 @@ program
         for( let service of config.data.local.services ) {
           try {
             console.log(`Removing ${service.name}`);
-            await deploy.remove(service.name, env);
+            await deploy.remove(service.name);
             console.log();
           } catch(e) {
             console.warn(e.message);
@@ -87,12 +86,12 @@ program
 
     if( opts.group ) {
       for( let service of groupServices ) {
-        await deploy.service(service.name, env, opts);
+        await deploy.service(service.name, opts);
       }
     } else if( opts.service ) {
-      await deploy.service(opts.service, env, opts);
+      await deploy.service(opts.service, opts);
     } else {
-      await deploy.all(env, opts);
+      await deploy.all(opts);
     }
   });
 

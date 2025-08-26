@@ -20,7 +20,7 @@ program
 
     let groupServices = [];
     for( let service of config.data.local.services ) {
-      groupServices.push(await deploy.renderTemplate(service.name, env, {quiet: true}));
+      groupServices.push(await deploy.renderTemplate(service.name, {quiet: true}));
     }
 
     if( opts.service ) {
@@ -47,7 +47,7 @@ program
 
       try {
         console.log(`Rolling restart of ${service.name}`);
-        await deploy.restart(service.name, env);
+        await deploy.restart(service.name);
         console.log();
       } catch(e) {
         console.warn(e.message);

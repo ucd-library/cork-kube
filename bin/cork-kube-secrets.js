@@ -16,7 +16,7 @@ program
   .option('-s, --secret <name>', 'only deploy a specific secret')
   .option('-r, --redeploy', 'redeploy secret, deletes it first, if it exists')
   .action(async (env, opts) => {
-    await init(env, opts);
+    env = await init(env, opts);
 
     if( opts.secret ) {
       await deploy.removeSecret(opts.secret);

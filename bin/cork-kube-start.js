@@ -21,7 +21,7 @@ program
       process.exit(1);
     }
 
-    await init(env, opts);
+    env = await init(env, opts);
     let corkKubeConfig = config.corkKubeConfig;
 
     console.log('');

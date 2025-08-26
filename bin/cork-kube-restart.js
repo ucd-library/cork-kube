@@ -14,7 +14,7 @@ program
   .option('-g, --group <group>', 'group of services to stop')
   .option('-s, --service <service>', 'service to stop')
   .action(async (env, opts) => {
-    await init(env, opts);
+    env = await init(env, opts);
 
     console.log('');
 

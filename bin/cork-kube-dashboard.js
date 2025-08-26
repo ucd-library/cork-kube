@@ -19,7 +19,7 @@ program
   .option('-c, --config <config>', 'path to config file')
   .option('-p, --project <project>', 'project name')
   .action(async (env, opts) => {    
-    await init(env, opts);
+    env = await init(env, opts);
 
     let corkKubeConfig = config.corkKubeConfig;
     if( corkKubeConfig.context != 'docker-desktop' ) {
@@ -54,7 +54,7 @@ program
   .option('-c, --config <config>', 'path to config file')
   .option('-p, --project <project>', 'project name')
   .action(async (env, opts) => {
-    await init(env, opts);
+    env = await init(env, opts);
 
     let corkKubeConfig = config.corkKubeConfig;
     let token;
@@ -80,7 +80,7 @@ program
   .option('-c, --config <config>', 'path to config file')
   .option('-p, --project <project>', 'project name')
   .action(async (env, opts) => {
-    await init(env, opts);
+    env = await init(env, opts);
 
     let corkKubeConfig = config.corkKubeConfig;
     if( corkKubeConfig.platform != 'docker-desktop' ) {

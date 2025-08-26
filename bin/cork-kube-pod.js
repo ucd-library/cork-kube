@@ -18,7 +18,7 @@ program
   .addOption(new Option('-e, --command <command>', 'command to execute').default('bash'))
   .addOption(new Option('-t, --tag <tag>', 'Tag to filter "service" by.').default('app'))
   .action(async (env, service, opts) => {
-    await init(env, opts);
+    env = await init(env, opts);
     let corkKubeConfig = config.corkKubeConfig;
 
     let pod = await kubectl.getRunningPodByTag(service, opts.tag, corkKubeConfig);
@@ -57,7 +57,7 @@ program
   .option('-p, --project <project>', 'project name')
   .option('-c, --config <path>', 'optional container name')
   .action(async (env, service, ports, opts) => {
-    await init(env, opts);
+    env = await init(env, opts);
     let corkKubeConfig = config.corkKubeConfig;
 
     let pod = await kubectl.getRunningPodByTag(service, opts.tag, corkKubeConfig);
@@ -92,7 +92,7 @@ program
   .option('-n, --container <container>', 'optional container name')
   .addOption(new Option('-t, --tag <tag>', 'Tag to filter "service" by.').default('app'))
   .action(async (env, service, opts) => {
-    await init(env, opts);
+    env = await init(env, opts);
     let corkKubeConfig = config.corkKubeConfig;
 
     let pods = await kubectl.getPodsByTag(service, opts.tag, corkKubeConfig);

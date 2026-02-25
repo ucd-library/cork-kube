@@ -98,6 +98,62 @@ program
     build.exec(opts);
   });
 
+
+program
+  .command('set-env <path>')
+  .description('update an env file with built image tags')
+  .requiredOption('-p, --project <project>', 'project name')
+  .requiredOption('-v, --version <version>', 'version to build')
+  .option('-m, --production', 'production build.  Use real registry names and push images to the defined registry')
+  .option('-d, --dry-run', 'dry run build.  Just prints dont change the env file')
+  .option('--no-push', 'do not push images to the registry.  Use this with production builds to just build the images to build image but not push, which is the default for production')
+  .option('-o, --override-tag <tag>', 'override tag for the build.  Can be comma separated list of project=tag')
+  .option('-f, --filter <filter>', 'filter image names to build.  Can be comma separated list of project names')
+  .option('--depth <depth>', 'depth of dependencies to build.  Default: 1, the current project.  Use ALL to build all dependencies')
+  .option('--use-registry <projects>', 'use the registry for the given projects even in dev build.  Comma separated list of project names')
+  .option('--cork-build-registry <url>', 'override default remote cork-build-registry location')
+  .option('--local-dev-registry <registry>', 'use the provided local dev registry for the build instead of the default: localhost/local-dev')
+  .action(async (envFile, opts) => {
+
+    if( opts.useRemote ) {
+      opts.useRemote = opts.useRemote.split(/(,| )/g)
+        .map(i => i.trim());
+    }
+
+    if( opts.useRegistry ) {
+      opts.useRegistry = opts.useRegistry.split(/(,| )/g)
+        .map(i => i.trim());
+    }
+
+    if( opts.depth ) {
+      if( opts.depth !== 'ALL' ) {
+        opts.depth = parseInt(opts.depth);
+      }
+    } else {
+      opts.depth = 1;
+    }
+
+    if( opts.filter ) {
+      opts.filter = opts.filter.split(/(,| )/g)
+        .map(i => i.trim());
+    } else {
+      opts.filter = [];
+    }
+
+    if( envFile && !path.isAbsolute(envFile) ) {
+      envFile = path.resolve(process.cwd(), envFile);
+    }
+    if( !fs.existsSync(envFile) ) {
+      console.error(`Env file not found: ${envFile}`);
+      process.exit(1);
+    }
+
+    opts.setEnv = envFile;
+
+    // check for this as env var to allow for caching
+    build.setEnv(opts);
+  });
+
 program
   .command('register-local-repo')
   .description('register a local repository to use')

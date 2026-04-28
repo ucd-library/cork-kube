@@ -133,4 +133,4 @@ The `dashboard` commands are deprecated. We are moving to [Headlamp](https://hea
 
 | Command | Description |
 |---|---|
-| [`cork-kube dashboard`](docs/dashboard.md) | ~~Install and access the Kubernetes dashboard~~ (deprecated — use Headlamp) |
+| [`cork-kube dashboard <env>`](docs/dashboard.md) | ~~Install and access the Kubernetes dashboard~~ (deprecated — use Headlamp) |

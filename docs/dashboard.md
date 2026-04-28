@@ -28,6 +28,15 @@ cork-kube dashboard -p my-project staging
 cork-kube dashboard -p my-project local-dev
 ```
 
+## Already running check
+
+Before opening Headlamp, the command checks whether it is already running. If it is, the command exits with an error rather than launching a second instance — because the existing instance may have been started with a different `KUBECONFIG` setting and would be pointing at the wrong cluster:
+
+```
+Headlamp is already running and may have been launched with a different KUBECONFIG setting.
+Please close Headlamp first, then run this command again.
+```
+
 ## Custom kubeconfig environments
 
 For environments that use a kubeconfig file outside the default `~/.kube/config` (e.g. microk8s), Headlamp needs the `KUBECONFIG` environment variable set in your terminal before it is launched. If you run `cork-kube dashboard <env>` and the environment requires a custom kubeconfig but `KUBECONFIG` is not set, the command will exit with an error and print the export command you need to run:

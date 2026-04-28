@@ -15,8 +15,135 @@ cork-kube build integrates with the [cork-build-registry](https://github.com/ucd
 
 When you run `cork-kube build gcb -p my-project -v v2.0`, cork-kube fetches the build configuration for that project and version from the registry, then submits a build job to Google Cloud Build.
 
+## How a Google Cloud Build works
+
+The default `cloudbuild.yaml` (stored in the cork-build-registry under `gcloud/`) is intentionally minimal — it runs a single build step using the `cork-build-n-deploy` container, which has `cork-kube` pre-installed:
+
+```yaml
+steps:
+  - name: us-west1-docker.pkg.dev/digital-ucdavis-edu/pub/cork-build-n-deploy:main
+    entrypoint: "bash"
+    args: ["-c", "cork-kube build exec --production -p ${_PROJECT} -v ${_VERSION} --depth ${_DEPTH}"]
+```
+
+`gcloud builds submit --no-source` is used — no local source is uploaded to GCB. The build container handles everything: cloning source, building images, and pushing to the registry.
+
+Inside that step, `cork-kube build exec --production` runs through the following sequence for each image defined in the project's `.cork-build` file:
+
+1. **Shallow clone** — the source repository is cloned at the specified version with `git clone --depth 1 --branch <version>`. This keeps clone time fast regardless of repo history length.
+
+2. **Cache pull** — before building, Docker pulls the previous image from the registry using `--cache-from=type=registry,ref=<image>:<tag>`. If layers have not changed, Docker reuses them rather than rebuilding from scratch.
+
+3. **Provenance injection** — a JSON file containing git metadata is generated and appended to the Dockerfile via a `COPY` instruction (see [Build provenance](#build-provenance) below). This happens automatically on every build.
+
+4. **Clean build** — `docker buildx build` runs with `--pull` to ensure the base image is always fetched fresh, and `--cache-to=type=inline,mode=max` to write the updated cache back into the image layers for the next build.
+
+5. **Push** — the built image is pushed to the Google Artifact Registry path defined in the project's `.cork-build` file. Docker labels recording the git tag and commit SHA are attached to the image.
+
+The `--high-cpu` flag switches to the `cloudbuild-highcpu.yaml` variant, which is identical except it sets `machineType: N1_HIGHCPU_8` for builds with heavy compile steps.
+
+---
+
+## Build provenance
+
+Every image built by cork-kube automatically includes a `/cork-build-info/` directory containing a JSON file for each image in the build. This gives you a record of exactly what source code produced the running container — useful for auditing, debugging production issues, and confirming what version is deployed.
+
+### What is written
+
+During the build, cork-kube appends the following to the end of the image's Dockerfile before running `docker build`:
+
+```dockerfile
+# Copy git info
+USER root
+RUN mkdir -p /cork-build-info
+COPY <image-name>.cork-build.json /cork-build-info/<image-name>.json
+# USER <user>  ← restored if 'user' is set in the image's .cork-build config
+```
+
+The step runs as `root` so it can always write to `/cork-build-info` regardless of what user the rest of the Dockerfile runs as. If your image drops privileges to a non-root user and you need to restore that after the provenance step, set the `user` property on the image in your `.cork-build` file — cork-kube will append a `USER <user>` instruction to hand control back:
+
+```json
+{
+  "images": {
+    "my-api": {
+      "contextPath": ".",
+      "user": "node"
+    }
+  }
+}
+```
+
+This produces:
+
+```dockerfile
+USER root
+RUN mkdir -p /cork-build-info
+COPY my-api.cork-build.json /cork-build-info/my-api.json
+USER node
+```
+
+The file written to `/cork-build-info/<image-name>.json` contains:
+
+```json
+{
+  "remote": "git@github.com:ucd-library/my-project.git",
+  "httpRemote": "https://github.com/ucd-library/my-project",
+  "commit": "a1b2c3d",
+  "tag": "v2.0",
+  "branch": "main",
+  "name": "my-project",
+  "date": "2025-04-01T18:00:00.000Z",
+  "imageTag": "us-west1-docker.pkg.dev/my-org/pub/my-image:v2.0"
+}
+```
+
+| Field | Description |
+|---|---|
+| `remote` | Git remote URL (SSH or HTTPS) |
+| `httpRemote` | Git remote URL normalised to HTTPS |
+| `commit` | Short commit SHA that was built |
+| `tag` | Git tag at the commit, if any |
+| `branch` | Branch name at build time |
+| `name` | Repository name |
+| `date` | Commit timestamp as an ISO 8601 string |
+| `imageTag` | Full Docker image tag that was pushed to the registry |
+
+### Docker image labels
+
+In addition to the in-image file, two Docker labels are attached to every built image:
+
+| Label | Example |
+|---|---|
+| `<PROJECT>_TAG` | `MY_PROJECT_TAG=v2.0` |
+| `<PROJECT>_SHA` | `MY_PROJECT_SHA=a1b2c3d` |
+
+The project name is uppercased and non-alphanumeric characters are replaced with underscores.
+
+### Reading provenance at runtime
+
+From inside a running pod you can inspect the provenance of any image in the container:
+
+```bash
+# From a shell in the running pod (cork-kube pod exec local-dev my-service)
+cat /cork-build-info/my-image.json
+```
+
+Or directly with kubectl after activating an environment:
+
+```bash
+kubectl exec deploy/my-service -- cat /cork-build-info/my-image.json
+```
+
+### Opting out
+
+Individual images can set `noBuildInfo: true` in their `.cork-build` configuration to skip provenance injection. This is occasionally needed for base images or scratch-based images where the copy step would fail.
+
+---
+
 ## Commands
 
+- [How a GCB build works](#how-a-google-cloud-build-works)
+- [Build provenance](#build-provenance)
 - [build gcb](#build-gcb) — Submit a build to Google Cloud Build
 - [build exec](#build-exec) — Run a local Docker build
 - [build set-env](#build-set-env) — Write built image tags to an env file

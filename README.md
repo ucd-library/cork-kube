@@ -1,183 +1,136 @@
 # cork-kube
-kubectl wrapper for working with kubectl kustomization configurations
 
-## Table of Contents
-- [Installation](#installation)
-- [Usage](#usage)
-- [Project Config File](#project-config-file)
-- [Source Mount File](#source-mount-file)
-- [Project Init File](#project-init-file)
-  - [Account verification](#account-verification)
-  - [Specify a project by name](#specify-a-project-by-name)
+cork-kube is a CLI tool that wraps `kubectl` and `gcloud` to simplify deploying and managing applications on Kubernetes. It is designed for teams comfortable with Docker and docker-compose who are adopting Kubernetes — providing a familiar, project-oriented workflow on top of raw `kubectl` and [Kustomize](https://kustomize.io).
+
+## How it relates to docker-compose
+
+If you know docker-compose, cork-kube covers the same day-to-day tasks in Kubernetes:
+
+| docker-compose | cork-kube |
+|---|---|
+| `docker compose up` | `cork-kube start <env>` |
+| `docker compose down` | `cork-kube stop <env>` |
+| `docker compose restart` | `cork-kube restart <env>` |
+| `docker exec -it <name> bash` | `cork-kube pod exec <env> <service>` |
+| `docker logs -f <name>` | `cork-kube pod logs <env> <service>` |
+| port mapping in compose file | `cork-kube pod port-forward <env> <service> <port>` |
+
+Under the hood, cork-kube uses **Kustomize** to manage Kubernetes YAML. Think of Kustomize as a way to have a base configuration with environment-specific overlays on top — similar to `docker-compose.yml` + `docker-compose.override.yml`.
+
+## The two parts of the pipeline
+
+cork-kube covers two distinct stages of the deployment cycle:
+
+**1. Building images** — `cork-kube build` integrates with [Google Cloud Build](https://cloud.google.com/build) and the [cork-build-registry](https://github.com/ucd-library/cork-build-registry) to build and publish Docker images. The cork-build-registry is a central registry where project versions, image configurations, and build dependencies are defined. **A version must be registered there before it can be built.**
+
+**2. Deploying to Kubernetes** — Commands like `start`, `stop`, `apply`, and `secrets` deploy those images to a Kubernetes cluster. They work from a per-project config file (`.cork-kube-config`) that defines your environments, services, and secrets.
+
+These two stages are independent: you build images once and deploy them many times across environments.
 
 ## Installation
+
 ```bash
 npm install -g @ucd-lib/cork-kube
 ```
 
-## Usage
+## Quick start
 
 ```bash
-cork-kube --help
-```
-
-Commands:
-
-To see commands run `cork-kube --help`
-
-
-## Project Config File
-
-You can specify a project config file to define
-- the project name
-- the environments for the project, including k8s cluster information Google Cloud project information
-- secrets that should be applied to the k8s cluster
-- kustomize templates (services) that should be applied to the k8s cluster
-
-### Config file location and access
-
-Recommended. The project config file should be located at the root of your project and named `.cork-kube-config`.  This file should be a json object with the following root level properties:
-
-```json
-{
-  "project": "my-project",
-  "environments": {},
-  "secrets" : {},
-  "serviceTemplates" : {},
-  "services" : []
-}
-```
-
-You can then register the project with `cork-kube` by running:
-
-```bash
+# One-time: register your project config with cork-kube
 cork-kube project set -c /path/to/.cork-kube-config
+
+# Set your GCP account for the project (optional, enables account verification)
+cork-kube project set -p my-project -e you@ucdavis.edu
+
+# Activate the environment (points gcloud + kubectl at the right cluster)
+cork-kube activate -p my-project local-dev
+
+# Start all services
+cork-kube start -p my-project local-dev
+
+# Tail logs from a running pod
+cork-kube pod logs local-dev my-service
+
+# Open a shell in a running pod
+cork-kube pod exec local-dev my-service
+
+# Stop everything
+cork-kube stop -p my-project local-dev
 ```
 
-When running `cork-kube` commands, you can specify the path to the project config file with the `-c` flag or if you have registered the project you can use the `-p` flag with the project name.  If you do not specify a config path or project name, `cork-kube` will look for the file in the current working directory.  When specifying a config path, if a directory is provided, `cork-kube` will look for the file `.cork-kube-config` in that directory.
+## Project configuration
 
-### Config file properties
+The `.cork-kube-config` file defines your project's environments, services, secrets, and deployment options. It is the central config that most cork-kube commands read from. See [Project Config](docs/project-config.md) for full documentation.
 
-- `project`: The name of the project
-- `environments`: An object with the following properties:
-  - `platform`: The k8s platform to use.  Should be `gke` or `docker-desktop`
-  - `cluster`: The name of the cluster to use (only used for `gke`)
-  - `zone`: The zone your GKE cluster resides in (only used for `gke`)
-  - `project`: The Google Cloud project name to use 
-  - `namespace`: The Kubernetes namespace to use
-- `secrets`: An object with the following properties where the key is the name of the environment and the value is an array of secret objects:
-  - `k8sName`: The name of the secret in k8s
-  - `mappings`: An array of objects with the following properties
-    - `gcsmName`: The name of the secret in Google Cloud Secret Manager
-    - `k8sProperty`: The property in the k8s secret (`k8sName`) that should be set to the value of the Google Cloud Secret Manager secret (`gcsmName`)
-- `serviceTemplates`: An object with the following properties where the key is the name of the service template and the value is an object.  Any valid service property is allowed.  These templates can be used to apply properties to multiple services.
-- `services`: Defines the available kustomize templates as 'services'.  The projects services can be started, stopped or redeployed (deleted then applied) as; a whole, a single service or a group of services (defined by the `group` property).  Services should be an array of objects with the following properties:
-  - `path`: The relative path from the config file to the kustomize template root directory.  Note that a 'name' will be applied to the service based on the directory name of the kustomize template.
-  - `group`: The name of the group this service belongs to.  This is used to start, stop or redeploy a group of services in a single `cork-kube` command.
-  - `edit`: Apply a `cork-kube apply --edit` to the service.  Should be an object with the following properties:
-    - `jsonpath`: The jsonpath to the property to edit
-    - `value`: The value to set the jsonpath property to
-  - `sourceMounts`: Path to source mount file(s) to apply to the service.  Paths should be relative to the location of the config file.
-  - `template`: The name of the service template to apply to the service.  This will apply the properties of the `serviceTemplate` to the service.  Note that the properties of the service will override the properties of the template.
-  - `environments`: An object where the key is the name of the environment and the value is an object with the same properties as the service object.  These properties will only be applied to the service in the specified environment.
-  - `config`: Load config variables for string template properties from a file.  Currently this should be a `.sh` file.
-    - `file`: The path to the config file.  This should be relative to the location of the config file.
-    - `args`: Object of key/value pairs to set before running the config file.  These will be available in the config file as environment variables. Ex `file:"config.sh"` and `args={LOCAL_DEV:"true"}`, this will call `LOCAL_DEV=true ./config.sh`.
-  - `ignore`: If true, the service will be ignored when running `cork-kube` commands.  This is useful for services that are not ready to be deployed or are not used in the current environment (very usual when combined in the `environments` spec). 
+---
 
-Note on service properties. `template`, `group`, `edit` and `sourceMounts` can all be arrays.  If they are arrays, the properties will be applied to the service in the order they are defined in the array.
+## Command reference
 
-### Config File String Template Variables
+### Setup & registration
 
-Sometimes you may want dynamic properties in your config file. Ex, in local development you want to reploy a different image based on your branch. You can use string templates in your config file properties.  String templates are defined by wrapping the variable in `${}`.  The variable name should be the name of the environment variable you want to use.  The environment variable should be set in the shell environment before running `cork-kube` or the service can define this `config` property to load the variable from a file.
+These commands are typically run once per developer machine when setting up a project. `project` handles registration; `activate` switches your local tooling to point at the right cluster; `status` lets you verify where you're pointed.
 
-The variable `${__DIRNAME}` is already defined for you.  This will be replaced with the directory name of the kustomize template. The variable `${__ENV}` is defined as well.  This will be replaced with `environment` argument passed to the `cork-kube` command.
+| Command | Description |
+|---|---|
+| [`cork-kube project set`](docs/project.md#project-set) | Register a project config file; set GCP account or kubeconfig |
+| [`cork-kube project list`](docs/project.md#project-list) | List registered projects |
+| [`cork-kube activate <env>`](docs/activate.md#activate) | Set gcloud and kubectl to the project environment (alias: `init`) |
+| [`cork-kube status`](docs/activate.md#status) | Show the active gcloud and kubectl configuration |
 
-example:
+### Service lifecycle
 
-```json
-{
-  "project" : "my-project",
+Start, stop, and restart the services defined in your `.cork-kube-config`. These are the commands you'll use most often day-to-day.
 
-  "service" : {
-    "my-service" : {
-      "environments" : {
-        "local-dev" : {
-          "edit" : {
-            "jsonpath": "spec.template.spec.containers[?(@.name=='server')].image", 
-            "value": "${MY_SERVER_IMAGE_NAME}:${APP_TAG}"
-          }
-        }
-      }
-    }
-  }
-}
-```
+| Command | Description |
+|---|---|
+| [`cork-kube start <env>`](docs/service-lifecycle.md#start) | Start all services for an environment (alias: `up`) |
+| [`cork-kube stop <env>`](docs/service-lifecycle.md#stop) | Stop all services for an environment (alias: `down`) |
+| [`cork-kube restart <env>`](docs/service-lifecycle.md#restart) | Rolling restart services (Deployments and StatefulSets only) |
 
-This will replace `${MY_SERVER_IMAGE_NAME}` with the value of the `MY_SERVER_IMAGE_NAME` environment variable and `${APP_TAG}` with the value of the `APP_TAG` environment variable when running `cork-kube apply` in the `local-dev` environment.
+### Kubernetes templates
 
-## Source Mount File
+Low-level commands for working directly with Kustomize templates. `apply` is what `start` calls internally for each service. Use these directly when you need fine-grained control or are working outside a full project config.
 
-You can mount source code into a container by using a source mount file. This is useful for development environments where you want to mount your source code into a container.  You will specify the source mount file(s) as a flag when running `cork-kube apply`.
+| Command | Description |
+|---|---|
+| [`cork-kube apply <dir>`](docs/apply.md) | Render and apply a kustomize template |
+| [`cork-kube edit <dir>`](docs/edit-overlay.md#edit) | Edit YAML values in a template via jsonpath |
+| [`cork-kube create-overlay <dir> <name>`](docs/edit-overlay.md#create-overlay) | Scaffold a new kustomize overlay |
 
+### Pod operations
 
-```yaml
+Interact with running pods. cork-kube finds the right pod by service name so you don't need to look up pod names manually.
 
-A source mount file should have the following format:
+| Command | Description |
+|---|---|
+| [`cork-kube pod exec <env> <service>`](docs/pod.md#pod-exec) | Open a shell or run a command in a running pod |
+| [`cork-kube pod logs <env> <service>`](docs/pod.md#pod-logs) | Follow logs from a running pod |
+| [`cork-kube pod port-forward <env> <service> <ports>`](docs/pod.md#pod-port-forward) | Forward a local port to a pod |
 
-```json
-[{
-  "name": "Of the mount",
-  "containerPath": "/path/in/container",
-  "sourcePath": "relative/path/to/source"
-}]
-```
+### Secrets
 
-Properties:
-- `name`: The name of the mount. This is used to identify the mount in the source mount file.
-- `containerPath`: The path in the container where the source should be mounted.
-- `sourcePath`: The path to the source that should be mounted in the container. This path is relative to the location of the source mount file.
+| Command | Description |
+|---|---|
+| [`cork-kube secrets deploy <env>`](docs/secrets.md) | Deploy secrets from Google Cloud Secret Manager |
 
+### Image building
 
-Example file located at `/home/jrmerz/dev/my-app-deployment/source-mounts.json`:
-```json
-[
-  {
-    "name": "my-source",
-    "containerPath": "/app/src",
-    "sourcePath": "../../my-app/src"
-  }
-]
-```
+A separate part of the pipeline from deployment. Requires versions to be registered in the [cork-build-registry](https://github.com/ucd-library/cork-build-registry).
 
-Will add the following to the deployment or statefulset:
-```yaml
-spec:
-  template:
-    spec:
-      containers:
-      - name: my-app
-        volumeMounts:
-        - name: my-source
-          mountPath: /app/src
-      volumes:
-      - name: my-source
-        hostPath:
-          path: /home/jrmerz/dev/my-app/src
-```
+| Command | Description |
+|---|---|
+| [`cork-kube build gcb`](docs/build.md#build-gcb) | Submit a build to Google Cloud Build |
+| [`cork-kube build exec`](docs/build.md#build-exec) | Run a local Docker build |
+| [`cork-kube build set-env <path>`](docs/build.md#build-set-env) | Write built image tags to an env file |
+| [`cork-kube build list`](docs/build.md#build-list) | List projects and versions from the build registry |
+| [`cork-kube build validate`](docs/build.md#build-validate) | Validate a project's image configuration |
+| [`cork-kube build set-config`](docs/build.md#build-set-config) | Configure build settings (GCB project, registries) |
+| [`cork-kube build show-config`](docs/build.md#build-show-config) | Show current build configuration |
 
-### Account verification
+### Dashboard (deprecated)
 
-You can assign a user account for a `cork-kube` project
+The `dashboard` commands are deprecated. We are moving to [Headlamp](https://headlamp.dev) as our Kubernetes UI — see the [dashboard docs](docs/dashboard.md#migrating-to-headlamp) for migration notes.
 
-Example:
-
-```bash
-cork-kube project set -p my-project -e jrmerz@ucdavis.edu
-```
-
-Once a user account is assign `cork-kube init` will ensure you are logged in with the proper account, exiting with error if you are not.
-
-### Specify a project by name
-
-run `cork-kube project set -c [path to config file]` to register the project with cork-kube.  This will allow you to run `cork-kube init -p my-project local-dev` or `cork-kube stop -p my-project local-dev` without specifying the path to the init file.
+| Command | Description |
+|---|---|
+| [`cork-kube dashboard`](docs/dashboard.md) | ~~Install and access the Kubernetes dashboard~~ (deprecated — use Headlamp) |

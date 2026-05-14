@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import config from '../lib/config.js';
 import build from '../lib/build.js';
 import buildDependencies from '../lib/build-dependencies.js';
+import tagRelease from '../lib/tag-release.js';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
@@ -327,6 +328,18 @@ program
     }
 
     config.saveGlobal();
+  });
+
+program
+  .command('tag-release')
+  .description('tag the latest commit on a branch with a version tag')
+  .argument('<branch>', 'branch to tag')
+  .argument('<tag>', 'version tag to apply (e.g. v1.2.3)')
+  .option('-p, --project <project>', 'cork-kube project name; if omitted, detected from the current directory')
+  .option('--cork-build-registry <url>', 'override default remote cork-build-registry location')
+  .option('-d, --dry-run', 'print what would happen without creating the tag')
+  .action(async (branch, tag, opts) => {
+    await tagRelease.run(branch, tag, opts);
   });
 
 program.parse(process.argv);

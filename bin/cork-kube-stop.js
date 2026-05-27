@@ -16,6 +16,7 @@ program
   .option('-v, --volumes', 'remove all volumes')
   .option('-g, --group <group>', 'group of services to stop')
   .option('-s, --service <service>', 'service to stop')
+  .option('--force-volume-removal', 'force volume removal without confirmation (use with --volumes)')
   .action(async (env, opts) => {
     env = await init(env, opts);
 
@@ -70,13 +71,12 @@ program
 
     let corkKubeConfig = config.corkKubeConfig;
 
-    if( opts.volumes ) {
+    if( opts.volumes && !opts.forceVolumeRemoval ) {
       if( corkKubeConfig.context != 'docker-desktop' ) {
         console.error(`You can only remove volumes with docker-desktop context. It's too dangerous to remove volumes in other contexts!`);
         process.exit(1);
       }
     }
-
 
     console.log(`\nStopping all jobs`);
     let output = await kubectl.stop('job', corkKubeConfig);

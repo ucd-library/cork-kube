@@ -1,6 +1,6 @@
 {
   "name": "@ucd-lib/cork-kube",
-  "version": "0.17.3",
+  "version": "0.17.4",
   "main": "index.js",
   "type": "module",
   "bin": {

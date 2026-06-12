@@ -30,7 +30,11 @@ program
     if( !namespaces.includes(corkKubeConfig.namespace) ) {
       console.log(`Creating namespace ${corkKubeConfig.namespace}`);
       if( !opts.debug ) {
-        await kubectl.createNamespace(corkKubeConfig.namespace, corkKubeConfig);
+        try {
+          await kubectl.createNamespace(corkKubeConfig.namespace, corkKubeConfig);
+        } catch(e) {
+          console.log(`Could not find or create namespace ${corkKubeConfig.namespace}.  Assuming it exists.`);
+        }
       }
     }
 

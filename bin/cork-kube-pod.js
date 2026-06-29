@@ -17,6 +17,8 @@ program
   .option('-n, --container <container>', 'optional container name')
   .addOption(new Option('-e, --command <command>', 'command to execute').default('bash'))
   .addOption(new Option('-t, --tag <tag>', 'Tag to filter "service" by.').default('app'))
+  .option('--use-env-kubeconfig', 'use KUBECONFIG environment variable value for --kubeconfig flag')
+  .option('--context <context>', 'override kubectl context name')
   .action(async (env, service, opts) => {
     env = await init(env, opts);
     let corkKubeConfig = config.corkKubeConfig;
@@ -56,6 +58,8 @@ program
   .argument('<localPort:podPort>', 'local port to forward:pod port')
   .option('-p, --project <project>', 'project name')
   .option('-c, --config <path>', 'optional container name')
+  .option('--use-env-kubeconfig', 'use KUBECONFIG environment variable value for --kubeconfig flag')
+  .option('--context <context>', 'override kubectl context name')
   .action(async (env, service, ports, opts) => {
     env = await init(env, opts);
     let corkKubeConfig = config.corkKubeConfig;
@@ -91,6 +95,8 @@ program
   .option('-c, --config <path>', 'optional container name')
   .option('-n, --container <container>', 'optional container name')
   .addOption(new Option('-t, --tag <tag>', 'Tag to filter "service" by.').default('app'))
+  .option('--use-env-kubeconfig', 'use KUBECONFIG environment variable value for --kubeconfig flag')
+  .option('--context <context>', 'override kubectl context name')
   .action(async (env, service, opts) => {
     env = await init(env, opts);
     let corkKubeConfig = config.corkKubeConfig;

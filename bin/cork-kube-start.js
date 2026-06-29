@@ -15,6 +15,8 @@ program
   .option('-r, --redeploy', 'redeploy service, deletes it first then deploys. A service must be specified')
   .option('-d, --debug', 'debug service deployment')
   .option('--ignore-source-mounts', 'ignore source mounts when deploying')
+  .option('--use-env-kubeconfig', 'use KUBECONFIG environment variable value for --kubeconfig flag')
+  .option('--context <context>', 'override kubectl context name')
   .action(async (env, opts) => {
     if( opts.service && opts.group ) {
       console.error('Cannot specify both service and group, please choose one');

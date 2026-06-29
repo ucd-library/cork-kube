@@ -2,6 +2,7 @@
 
 import { Command } from 'commander';
 import apply from '../lib/apply.js';
+import kubectl from '../lib/kubectl.js';
 
 const program = new Command();
 
@@ -15,6 +16,16 @@ program
   .option('-q, --quiet', 'No output')
   .option('-s, --show-unused-edits', 'Show edit commands that did not match')
   .option('-d, --dry-run', 'Print templates to stdout without applying')
-  .action(apply);
+  .option('--use-env-kubeconfig', 'use KUBECONFIG environment variable value for --kubeconfig flag')
+  .action(async (templateDir, opts) => {
+    if( opts.useEnvKubeconfig ) {
+      if( !process.env.KUBECONFIG ) {
+        console.error('KUBECONFIG environment variable is not set');
+        process.exit(1);
+      }
+      kubectl.setRuntimeParams({ kubeconfigFile: process.env.KUBECONFIG });
+    }
+    await apply(templateDir, opts);
+  });
 
 program.parse(process.argv);

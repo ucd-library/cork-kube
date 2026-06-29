@@ -17,6 +17,8 @@ program
   .option('-g, --group <group>', 'group of services to stop')
   .option('-s, --service <service>', 'service to stop')
   .option('--force-volume-removal', 'force volume removal without confirmation (use with --volumes)')
+  .option('--use-env-kubeconfig', 'use KUBECONFIG environment variable value for --kubeconfig flag')
+  .option('--context <context>', 'override kubectl context name')
   .action(async (env, opts) => {
     env = await init(env, opts);
 

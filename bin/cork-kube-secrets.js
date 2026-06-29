@@ -15,6 +15,8 @@ program
   .option('-p, --project <project>', 'project name')
   .option('-s, --secret <name>', 'only deploy a specific secret')
   .option('-r, --redeploy', 'redeploy secret, deletes it first, if it exists')
+  .option('--use-env-kubeconfig', 'use KUBECONFIG environment variable value for --kubeconfig flag')
+  .option('--context <context>', 'override kubectl context name')
   .action(async (env, opts) => {
     env = await init(env, opts);
 

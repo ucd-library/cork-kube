@@ -13,6 +13,8 @@ program
   .option('-p, --project <project>', 'project name')
   .option('-g, --group <group>', 'group of services to stop')
   .option('-s, --service <service>', 'service to stop')
+  .option('--use-env-kubeconfig', 'use KUBECONFIG environment variable value for --kubeconfig flag')
+  .option('--context <context>', 'override kubectl context name')
   .action(async (env, opts) => {
     env = await init(env, opts);
 

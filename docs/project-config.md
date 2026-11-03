@@ -278,7 +278,7 @@ Defines the kustomize templates that cork-kube will deploy. Each entry points to
 | `path` | Relative path from the config file to the kustomize template root. The directory name becomes the service name. |
 | `group` | Group name. Lets you start/stop/restart a subset of services with `-g`. |
 | `template` | Name of a `serviceTemplate` to apply. Properties defined on the service override the template. |
-| `edit` | A jsonpath edit (or array of edits) to apply when deploying. Each edit has `jsonpath` and `value` properties. |
+| `edit` | A jsonpath edit (or array of edits) to apply when deploying. Each edit has `jsonpath` and `value` properties, plus an optional `normalizePath: true` to resolve `value` to a normalized absolute path (relative to the config file's directory) after template variables are substituted. |
 | `sourceMounts` | Path(s) to source mount file(s), relative to the config file. |
 | `environments` | Environment-specific overrides. Keys are environment names; values are objects with any of the above service properties. |
 | `config` | Load string template variables from a shell script. Has `file` (path) and `args` (key/value env vars to pass) properties. |
@@ -309,6 +309,18 @@ Use `environments` to override any service property for a specific environment:
       }
     }
   ]
+}
+```
+
+If `value` is built from `${__DIRNAME}` plus a relative suffix (e.g. to point a `hostPath` volume at a sibling directory), set `normalizePath: true` to collapse the result into a clean absolute path instead of writing the raw `../` segments into the manifest:
+
+```json
+{
+  "edit": {
+    "jsonpath": "spec.template.spec.volumes[0].hostPath.path",
+    "value": "${__DIRNAME}/../src/lib",
+    "normalizePath": true
+  }
 }
 ```
 

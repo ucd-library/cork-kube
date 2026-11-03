@@ -17,6 +17,7 @@ program
   .option('--ignore-source-mounts', 'ignore source mounts when deploying')
   .option('--use-env-kubeconfig', 'use KUBECONFIG environment variable value for --kubeconfig flag')
   .option('--context <context>', 'override kubectl context name')
+  .option('--no-secrets', 'skip deploying/cycling secrets')
   .action(async (env, opts) => {
     if( opts.service && opts.group ) {
       console.error('Cannot specify both service and group, please choose one');
@@ -40,7 +41,7 @@ program
       }
     }
 
-    if( config.data.local.secrets && !opts.service && !opts.group ) {
+    if( config.data.local.secrets && !opts.service && !opts.group && opts.secrets ) {
       await deploy.secrets(opts);
     }
 

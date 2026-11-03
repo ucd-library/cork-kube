@@ -50,6 +50,7 @@ cork-kube up <env> [options]
 | `-r, --redeploy` | Delete the service before redeploying. Forces a clean restart. |
 | `-d, --debug` | Debug mode — prints what would happen without applying anything |
 | `--ignore-source-mounts` | Skip source mounts even if they are defined in the config |
+| `--no-secrets` | Skip deploying/cycling secrets, even if they are defined in the config |
 
 **Examples:**
 

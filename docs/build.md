@@ -181,6 +181,7 @@ cork-kube build gcb -p <project> -v <version> [options]
 | `--no-cache` | Disable Docker layer caching |
 | `--high-cpu` | Use a high-CPU Cloud Build machine type |
 | `--depth <n>` | Build depth. Default: `1` (current project only). Use `ALL` to build all dependency projects as well. |
+| `--notify <types>` | Slack notification types to send for this build: `start`, `stop`, `error` (comma separated), or `none` to disable all. Default: notify everything. |
 | `-d, --dry-run` | Print the gcloud command without submitting |
 
 **Examples:**
@@ -194,6 +195,12 @@ cork-kube build gcb -p my-project -v v2.0 -d
 
 # Build the project and all of its registered dependencies
 cork-kube build gcb -p my-project -v v2.0 --depth ALL
+
+# Only notify Slack on build start and error, not on success
+cork-kube build gcb -p my-project -v v2.0 --notify start,error
+
+# Suppress all Slack notifications for this build
+cork-kube build gcb -p my-project -v v2.0 --notify none
 ```
 
 ---

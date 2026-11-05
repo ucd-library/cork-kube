@@ -19,10 +19,20 @@ program
   .option('--no-cache', 'do not use cache when building images')
   .option('--high-cpu', 'use high cpu machine type for build')
   .option('--depth <depth>', 'build depth.  Default: 1, the current project.  Use ALL to build all dependencies')
+  .option('--notify <types>', 'slack notification types to send for this build: start,stop,error (comma separated), or "none" to disable all.  Default: notify everything')
   .option('-d, --dry-run', 'just print the gcloud command')
   .action(async (opts) => {
     if( opts.cache === undefined ) {
       opts.cache = true;
+    }
+    if( opts.notify ) {
+      let validTypes = ['start', 'stop', 'error', 'none'];
+      let types = opts.notify.split(',').map(t => t.trim());
+      let invalid = types.filter(t => !validTypes.includes(t));
+      if( invalid.length ) {
+        console.error(`Invalid --notify value(s): ${invalid.join(', ')}.  Valid values are: ${validTypes.join(', ')}`);
+        process.exit(1);
+      }
     }
     build.googleCloudBuild(opts.project, opts.version, opts);
   });

@@ -20,6 +20,7 @@ program
   .option('--high-cpu', 'use high cpu machine type for build')
   .option('--depth <depth>', 'build depth.  Default: 1, the current project.  Use ALL to build all dependencies')
   .option('--notify <types>', 'slack notification types to send for this build: start,stop,error (comma separated), or "none" to disable all.  Default: notify everything')
+  .option('--no-wait', 'submit the build and return immediately, without streaming build logs')
   .option('-d, --dry-run', 'just print the gcloud command')
   .action(async (opts) => {
     if( opts.cache === undefined ) {

@@ -182,6 +182,7 @@ cork-kube build gcb -p <project> -v <version> [options]
 | `--high-cpu` | Use a high-CPU Cloud Build machine type |
 | `--depth <n>` | Build depth. Default: `1` (current project only). Use `ALL` to build all dependency projects as well. |
 | `--notify <types>` | Slack notification types to send for this build: `start`, `stop`, `error` (comma separated), or `none` to disable all. Default: notify everything. |
+| `--no-wait` | Submit the build and return immediately, without streaming build logs. Prints `{"buildId": "...", "status": "success"}` on successful submission, or `{"buildId": "...", "status": "error", "message": "..."}` on failure. |
 | `-d, --dry-run` | Print the gcloud command without submitting |
 
 **Examples:**
@@ -201,6 +202,10 @@ cork-kube build gcb -p my-project -v v2.0 --notify start,error
 
 # Suppress all Slack notifications for this build
 cork-kube build gcb -p my-project -v v2.0 --notify none
+
+# Submit the build and detach immediately, without tailing build logs
+cork-kube build gcb -p my-project -v v2.0 --no-wait
+# -> {"buildId":"...","status":"success"}
 ```
 
 ---
